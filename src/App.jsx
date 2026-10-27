@@ -11,7 +11,6 @@ import {
   Moon,
   Utensils,
   Car,
-  Heart,
   PawPrint,
   Waves,
   ChevronLeft,
@@ -49,7 +48,9 @@ import {
   Keyboard,
   MessageCircle,
   Send,
-  Bot
+  Bot,
+  Heart,
+  Phone
 } from 'lucide-react';
 
 // ============================================================================
@@ -350,7 +351,7 @@ const PACKAGES_DATA = [
     icon: Sun,
     minPax: 1,
     maxPax: 15,
-    paxLabel: 'Up to 15 Pax',
+    paxLabel: 'Up to 30 Pax',
     weekdayRate: 4500,
     weekendRate: 5000,
     monThuOnly: false,
@@ -388,7 +389,7 @@ const PACKAGES_DATA = [
     icon: Moon,
     minPax: 1,
     maxPax: 15,
-    paxLabel: 'Up to 15 Pax',
+    paxLabel: 'Up to 30 Pax',
     weekdayRate: 6999,
     weekendRate: 7500,
     monThuOnly: false,
@@ -976,43 +977,43 @@ const PAYMENT_CANCELLATION_PDF = [
 const REVIEWS_DATA = [
   {
     id: 'rev-1',
-    name: 'Alyssa & Marco',
-    stayType: 'THE VISTA — Overlooking Room (2–4 Pax)',
-    date: 'October 2026',
+    name: 'Joe Baluyut',
+    stayType: 'Google Review',
+    date: 'October 2025',
     rating: 5,
-    highlight: 'Free Silog breakfast by the river + super relaxing view!',
+    highlight: 'Love the river view!',
     comment:
-      'We booked The Vista for 2 nights (₱2,800/night weekday). Waking up to the Angat River view with free Silog breakfast for both of us made our anniversary staycation so special. Free LPG use in the kitchen and karaoke until 10 PM were huge bonuses!'
+      'Recommended for family and friends events. Super fun!'
   },
   {
     id: 'rev-2',
-    name: 'kevin_delacruz',
-    stayType: 'THE RIVER LOFT — Barkada Room (14 Pax)',
-    date: 'September 2026',
+    name: 'Zyrah Red',
+    stayType: 'Google Review',
+    date: 'September 2025',
     rating: 5,
-    highlight: 'Best barkada room! 2 double bunks + 3 single bunks fit us all',
+    highlight: 'Place is huge with good ambiance.',
     comment:
-      'Super sulit ng ₱5,000 for 10–15 guests sa The River Loft! May sariling private bathroom sa loob, malamig ang aircon, at may kasama pang Silog breakfast bawat isa sa amin. Solid din ang swimming pool sa gabi.'
+      'Nice Place to visit with your Family & Friends.'
   },
   {
     id: 'rev-3',
-    name: 'Maria Katrina S.',
-    stayType: 'Whole Resort Overnight (28 Pax)',
-    date: 'August 2026',
+    name: 'Mary Christine Recto',
+    stayType: 'Facebook Review',
+    date: 'September 2026',
     rating: 5,
-    highlight: 'Ultimate family reunion spot with all 4 rooms included',
+    highlight: 'Would definitely come back!',
     comment:
-      'Sobrang ganda ng view sa Riverside Balcony lalo na pag sunset! Getting all 4 rooms (The Vista, The Hideout, The River Loft, and The Cozy Den) gave our elders and kids complete privacy and comfort.'
+      'Clean place, nice staff, and a relaxing stay. '
   },
   {
     id: 'rev-4',
-    name: 'Rhea Mendoza',
-    stayType: 'THE COZY DEN — Cozy Room (4 Pax)',
-    date: 'July 2026',
+    name: 'Therese David',
+    stayType: 'Facebook Review',
+    date: 'July 2025',
     rating: 5,
-    highlight: '₱2,000 for 22 hours with private CR, pool & breakfast!',
+    highlight: 'Ideal for family getaways, barkada trips, or even quiet solo retreats',
     comment:
-      'Where else can you find a ₱2,000 22-hour staycation with a private bathroom, aircon, swimming pool access, free LPG cooking, and free Silog breakfast?! Super clean and accommodating staff.'
+      'Highly recommended 👌 Just had the most amazing stay with our SFC Family at this private resort! From the moment we arrived, we were welcomed with warmth. Whether you’re looking to unwind, reconnect, or simply escape the noise of the city—this resort is worth every peso.'
   }
 ];
 
@@ -1210,10 +1211,6 @@ const buildMonthDaysMondayFirst = (year, month, selectedPackage, customHolidays,
   return cells;
 };
 
-// ============================================================================
-// AI CHAT SUPPORT KNOWLEDGE BASE & COMPONENT (GEMINI API + SMART FALLBACK)
-// ============================================================================
-
 const RESORT_SYSTEM_PROMPT = `
 You are the official AI Concierge for "The Forts Riverside Private Resort" (website: https://theforts.pages.dev/), located near the scenic Angat River and Beltran Street.
 Be warm, helpful, concise, and polite. Format prices in Philippine Pesos (₱). Only answer based on the official resort facts below:
@@ -1229,8 +1226,8 @@ Be warm, helpful, concise, and polite. Format prices in Philippine Pesos (₱). 
       * Staycation Extra Charges: Extra guest is ₱300/person per stay (includes pool access & Silog breakfast). Extra single mattress is ₱150/night; extra double mattress is ₱200/night (subject to availability).
 
    B) EXCLUSIVE RESORT BOOKINGS (Private access to pools, riverside balcony, function space, kitchen, court & included rooms):
-      - Day Tour (9 Hrs, 8:00 AM – 5:00 PM, up to 15 pax): ₱4,500 Weekday | ₱5,000 Fri–Sun/Holiday. Includes 1 complimentary room (The Vista). Excess guest: ₱150/head.
-      - Night Tour (11 Hrs, 7:00 PM – 6:00 AM, up to 15 pax): ₱6,999 Weekday | ₱7,500 Fri–Sun/Holiday. Includes 1 complimentary room (The Vista). Excess guest: ₱200/head.
+      - Day Tour (9 Hrs, 8:00 AM – 5:00 PM, up to 30 pax): ₱4,500 Weekday | ₱5,000 Fri–Sun/Holiday. Includes 1 complimentary room (The Vista). Excess guest: ₱150/head.
+      - Night Tour (11 Hrs, 7:00 PM – 6:00 AM, up to 30 pax): ₱6,999 Weekday | ₱7,500 Fri–Sun/Holiday. Includes 1 complimentary room (The Vista). Excess guest: ₱200/head.
       - Family Overnight Exclusive (22 Hrs, 2:00 PM – 12:00 NN, 4–8 pax): ₱7,999 Weekday | ₱8,999 Fri–Sun/Holiday.
       - Barkada Overnight Exclusive (22 Hrs, 9–15 pax): ₱10,999 Weekday | ₱11,999 Fri–Sun/Holiday.
       - Mid Group Overnight Exclusive (22 Hrs, 16–20 pax): ₱13,999 Weekday | ₱14,999 Fri–Sun/Holiday (Includes The River Loft & The Hideout).
@@ -1262,7 +1259,6 @@ const QUICK_CHAT_QUESTIONS = [
   'Payment & cancellation rules?'
 ];
 
-// Local fallback responder in case the Gemini API key is not added yet
 function getLocalFallbackAnswer(userText) {
   const q = userText.toLowerCase();
 
@@ -1288,6 +1284,20 @@ function getLocalFallbackAnswer(userText) {
   return `Hi! I can help you with Staycation Room rates (₱2,000–₱6,000 with free Silog breakfast & LPG), Exclusive Resort Packages (₱4,500–₱16,499), check-in times, extra mattresses, or booking policies. What would you like to know?`;
 }
 
+const FacebookIcon = ({ className }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+  </svg>
+);
+
+const InstagramIcon = ({ className }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+  </svg>
+);
+
 function FortsAIChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -1299,7 +1309,6 @@ function FortsAIChatbot() {
     }
   ]);
 
-  // Reads your Gemini API Key and removes any accidental spaces
   const GEMINI_API_KEY = (import.meta.env?.VITE_GEMINI_API_KEY || '').trim();
 
   const sendMessage = async (customQuestion = null) => {
@@ -1322,7 +1331,6 @@ function FortsAIChatbot() {
         return;
       }
 
-      // 1. Ask Google which Flash models are enabled for your specific API key
       let targetModel = 'models/gemini-flash-latest';
       const listRes = await fetch(
         'https://generativelanguage.googleapis.com/v1beta/models',
@@ -1346,7 +1354,6 @@ function FortsAIChatbot() {
 
         console.log('Available Gemini Text Models for your key:', availableModels);
 
-        // Prefer fast Flash-Lite or latest Flash aliases first for instant replies
         const preferredOrder = [
           'models/gemini-3.5-flash-lite',
           'models/gemini-3.1-flash-lite',
@@ -1371,9 +1378,8 @@ function FortsAIChatbot() {
         parts: [{ text: msg.text }]
       }));
 
-      // 2. Call generateContent using the detected model and x-goog-api-key header
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s limit
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent`,
@@ -1422,10 +1428,8 @@ function FortsAIChatbot() {
 
   return (
     <div className="fixed bottom-5 right-5 z-50">
-      {/* Chat Window */}
       {isOpen ? (
         <div className="w-[340px] sm:w-[380px] h-[510px] bg-white rounded-3xl border border-[#E6DBC8] shadow-2xl flex flex-col overflow-hidden">
-          {/* Header */}
           <div className="p-4 bg-[#0B3553] text-white border-b-2 border-[#C8AD7F] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-full bg-[#F5EFE6] text-[#0B3553] flex items-center justify-center font-bold shadow-xs">
@@ -1449,7 +1453,6 @@ function FortsAIChatbot() {
             </button>
           </div>
 
-          {/* Messages List */}
           <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#FAF8F5]">
             {messages.map((msg, idx) => (
               <div
@@ -1476,7 +1479,6 @@ function FortsAIChatbot() {
               </div>
             )}
 
-            {/* Quick Question Chips */}
             <div className="pt-2 flex flex-wrap gap-1.5">
               {QUICK_CHAT_QUESTIONS.map((q) => (
                 <button
@@ -1491,7 +1493,6 @@ function FortsAIChatbot() {
             </div>
           </div>
 
-          {/* Input Box */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -1517,7 +1518,6 @@ function FortsAIChatbot() {
           </form>
         </div>
       ) : (
-        /* Floating Launcher Button */
         <button
           type="button"
           onClick={() => setIsOpen(true)}
@@ -1912,7 +1912,7 @@ export default function App() {
       guestName ? `Guest Name: ${guestName}` : '',
       guestContact ? `Contact Info: ${guestContact}` : '',
       guestNotes ? `Special Notes: ${guestNotes}` : '',
-      'Official Website: https://theforts.ph'
+      'Official Website: https://theforts.pages.dev'
     ].filter(Boolean);
     return lines.join('\n');
   };
@@ -2188,7 +2188,7 @@ export default function App() {
             <div className="lg:col-span-7">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#F5EFE6]/15 border border-[#E6DBC8]/40 text-[#F5EFE6] text-xs sm:text-sm font-medium mb-6 backdrop-blur-xs">
                 <MapPin className="w-4 h-4 text-[#C8AD7F]" />
-                Scenic Angat River & Beltran Street • Private Resort Sanctuary
+                Bustos, Bulacan • Private Resort Sanctuary
               </div>
 
               <h1 className="text-4xl sm:text-6xl lg:text-7xl font-brand-serif font-bold tracking-tight leading-[1.08] text-white">
@@ -3664,7 +3664,7 @@ export default function App() {
                 <div className="relative z-10 self-center my-auto flex flex-col items-center">
                   <div className="bg-[#0B3553] text-white px-4 py-2 rounded-xl shadow-lg border border-[#C8AD7F] text-center mb-2">
                     <p className="text-xs font-bold">The Forts Riverside Private Resort</p>
-                    <p className="text-[10px] text-[#F5EFE6]">theforts.ph • Open for Bookings</p>
+                    <p className="text-[10px] text-[#F5EFE6]">theforts.pages.dev • Open for Bookings</p>
                   </div>
                   <div className="w-10 h-10 rounded-full bg-[#F5EFE6] border-4 border-[#0B3553] shadow-lg flex items-center justify-center text-[#0B3553]">
                     <MapPin className="w-5 h-5" />
@@ -3730,10 +3730,34 @@ export default function App() {
       ========================================== */}
       <footer className="bg-[#0B3553] text-slate-200 py-14 border-t-4 border-[#C8AD7F]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
-            <p>© 2026 The Forts Riverside Private Resort | theforts.ph</p>
+          {/* Contact & Brand Info */}
+          <div className="text-center lg:text-left">
+              {/* Flex container to place the logo and text side-by-side */}
+              <div className="flex items-center justify-center lg:justify-start gap-3.5">
+                <img 
+                  src="/logo.png" 
+                  alt="The Forts Logo" 
+                  className="w-12 h-12 rounded-full object-contain shadow-sm" 
+                />
+                <div className="text-left">
+                  <span className="block text-2xl font-brand-serif font-bold text-white leading-none">
+                    The Forts Riverside
+                  </span>
+                  <span className="block text-[10px] font-bold tracking-[0.28em] uppercase text-[#E6DBC8] mt-1">
+                    Private Resort
+                  </span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-400 mt-4 max-w-xs mx-auto lg:mx-0">
+                A peaceful riverside haven designed for relaxation, fun, and unforgettable memories.
+              </p>
+            </div>
+
+          {/* Copyright */}
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
+            <p>© 2026 The Forts Riverside Private Resort | theforts.pages.dev</p>
             <p className="flex items-center gap-1">
-              Designed with <Heart className="w-3.5 h-3.5 text-[#C8AD7F]" /> for unforgettable
+              Designed with <Heart className="w-3.5 h-3.5 text-[#C8AD7F] fill-current" /> for unforgettable
               riverside memories
             </p>
           </div>
@@ -3919,7 +3943,6 @@ export default function App() {
           </div>
         </div>
       )}
-      {/* AI CHAT SUPPORT WIDGET */}
       <FortsAIChatbot />
     </div>
   );
