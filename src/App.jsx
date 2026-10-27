@@ -2121,35 +2121,35 @@ export default function App() {
               onClick={() => setMobileMenuOpen(false)}
               className="block py-2 px-3 rounded-lg bg-[#F5EFE6] text-[#0B3553] border border-[#E6DBC8] font-bold"
             >
-              3-Step Calendar & Rate Calculator
+              Calendar & Rate Calculator
             </a>
             <a
               href="#rooms"
               onClick={() => setMobileMenuOpen(false)}
               className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium"
             >
-              Staycation Rooms (The Cozy Den, Vista, Hideout, River Loft)
+              Rooms
             </a>
             <a
               href="#packages"
               onClick={() => setMobileMenuOpen(false)}
               className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium"
             >
-              Packages & Rates Table
+              Packages & Rates
             </a>
             <a
               href="#amenities"
               onClick={() => setMobileMenuOpen(false)}
               className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium"
             >
-              Amenities Photo Gallery
+              Amenities
             </a>
             <a
               href="#rules"
               onClick={() => setMobileMenuOpen(false)}
               className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium"
             >
-              Staycation Policies & Rules
+              Policies & Rules
             </a>
             <a
               href="#reviews"
@@ -2199,12 +2199,11 @@ export default function App() {
               </h1>
 
               <p className="mt-6 text-base sm:text-lg text-slate-100 leading-relaxed max-w-2xl">
-                Unwind by the scenic Angat River. Book a <strong>22-Hour Room-Only Staycation</strong>{' '}
-                (inclusive of Silog breakfast, pool access, LPG cooking & karaoke) or reserve the{' '}
+                Unwind by the scenic Angat River. Book a <strong>22-Hour Room-Only Staycation</strong>{' '} or reserve the{' '}
                 <strong>Whole Resort Exclusively</strong> for your family and barkada.
               </p>
 
-              <div className="mt-8 flex flex-wrap items-center gap-3.5">
+              <div className="mt-20 flex flex-wrap items-center gap-3.5">
                 <a
                   href="#booking-calendar"
                   className="inline-flex items-center gap-2.5 bg-[#F5EFE6] hover:bg-white text-[#0B3553] font-bold px-6 py-4 rounded-xl shadow-lg transition-all cursor-pointer text-sm sm:text-base"
@@ -3070,7 +3069,7 @@ export default function App() {
           <div className="text-center max-w-3xl mx-auto mb-12">
             <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.18em] text-[#0B3553] bg-[#F5EFE6] border border-[#E6DBC8] px-3.5 py-1.5 rounded-full mb-3">
               <BedDouble className="w-3.5 h-3.5 text-[#0B3553]" />
-              Explore your Accomodations
+              Explore our Accomodations
             </span>
             <h2 className="text-3xl sm:text-5xl font-brand-serif font-bold text-[#0B3553]">
               Our 4 Relaxing Rooms
@@ -3098,10 +3097,7 @@ export default function App() {
                       <Users className="w-3.5 h-3.5 text-[#F5EFE6]" />
                       {room.capacity}
                     </span>
-                    <span className="bg-white/95 backdrop-blur-xs text-[#0B3553] text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 shadow-2xs">
-                      <Coffee className="w-3.5 h-3.5 text-[#8A6D3B]" />
-                      Free Silog Breakfast
-                    </span>
+                    
                   </div>
                 </div>
 
@@ -3202,7 +3198,7 @@ export default function App() {
                       <th className="py-3.5 px-4 border-b border-[#E6DBC8]">Room</th>
                       <th className="py-3.5 px-4 border-b border-[#E6DBC8]">Weekday</th>
                       <th className="py-3.5 px-4 border-b border-[#E6DBC8]">Weekend / Holiday</th>
-                      <th className="py-3.5 px-4 border-b border-[#E6DBC8] text-right">Action</th>
+                      <th className="py-3.5 px-4 border-b border-[#E6DBC8] text-right"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
