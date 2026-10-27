@@ -1212,7 +1212,7 @@ const buildMonthDaysMondayFirst = (year, month, selectedPackage, customHolidays,
 };
 
 const RESORT_SYSTEM_PROMPT = `
-You are the official AI Concierge for "The Forts Riverside Private Resort" (website: https://theforts.pages.dev/), located near the scenic Angat River and Beltran Street.
+You are the official AI Concierge for "The Forts Riverside Private Resort" (website: https://theforts.pages.dev/), located in Bustos, Bulacan near the scenic Angat River and Beltran Street.
 Be warm, helpful, concise, and polite. Format prices in Philippine Pesos (₱). Only answer based on the official resort facts below:
 
 1. TWO MAIN WAYS TO BOOK OVERNIGHT / DAY STAYS + EVENTS:
@@ -1247,9 +1247,10 @@ Be warm, helpful, concise, and polite. Format prices in Philippine Pesos (₱). 
    - Smoking & Pets: Strictly no smoking inside air-conditioned rooms. Well-behaved pets are welcome on the grounds (keep off beds and out of the pool).
    - Payment, Cancellation & Rescheduling: 50% down payment (DP) is required to secure a booking; remaining 50% balance is paid upon arrival before room use. Down payment is non-refundable for guest-initiated cancellations or no-shows. One reschedule is allowed if requested at least 7 days before check-in (subject to availability).
 
-3. LOCATION & HOW TO BOOK:
-   - Location: Near Angat River and Beltran Street (searchable on Google Maps & Waze as "The Forts Riverside Private Resort").
-   - How to Book: Use the 3-Step Rate Calculator on the website to compute the exact rate, then click "Reserve Selected Dates" or submit via the official Google Form: https://forms.gle/STv73fxDoKJxDC4A7 or message on Facebook/Instagram.
+3. LOCATION, CONTACT & HOW TO BOOK:
+   - Location: Bustos, Bulacan, near Angat River and Beltran Street (searchable on Google Maps & Waze as "The Forts Riverside Private Resort").
+   - Contact Info: Mobile: +63 960 503 8082 | Facebook: https://www.facebook.com/theforts.ph/ | Instagram: @theforts.ph
+   - How to Book: Use the 3-Step Rate Calculator on the website to compute the exact rate, then click "Reserve Selected Dates" or submit via the official Google Form: https://forms.gle/STv73fxDoKJxDC4A7 or message us directly on Facebook or Instagram.
 `;
 
 const QUICK_CHAT_QUESTIONS = [
@@ -3654,6 +3655,45 @@ export default function App() {
 
             <div className="lg:col-span-7">
               <div className="rounded-2xl overflow-hidden border border-[#E6DBC8] shadow-xs bg-[#FAF8F5] relative h-72 sm:h-80 flex flex-col justify-between p-6">
+                
+                {/* ---> THIS SVG IS THE MISSING MAP BACKGROUND <--- */}
+                <svg
+                  className="absolute inset-0 w-full h-full object-cover opacity-90"
+                  viewBox="0 0 800 500"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  preserveAspectRatio="xMidYMid slice"
+                >
+                  <rect width="800" height="500" fill="#F8FAFC" />
+                  <path
+                    d="M0 0H800V220C620 260 420 180 200 260C80 300 0 270 0 270V0Z"
+                    fill="#F5EFE6"
+                  />
+                  <path
+                    d="M0 360C220 330 450 410 800 320V500H0V360Z"
+                    fill="#EFE6D5"
+                  />
+                  {/* Angat River */}
+                  <path
+                    d="M-50 280C160 220 350 350 560 260C680 210 760 230 850 200L850 330C720 360 620 330 490 380C290 450 140 340 -50 390Z"
+                    fill="#1D5B8C"
+                    fillOpacity="0.85"
+                  />
+                  {/* Street Lines */}
+                  <path
+                    d="M120 0L290 250L650 160"
+                    stroke="#FFFFFF"
+                    strokeWidth="14"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M120 0L290 250L650 160"
+                    stroke="#C8AD7F"
+                    strokeWidth="2"
+                    strokeDasharray="8 8"
+                  />
+                </svg>
+
                 <div className="relative z-10 flex justify-between items-start">
                   <span className="bg-white/95 backdrop-blur-xs text-[#0B3553] text-xs font-bold px-3.5 py-2 rounded-xl shadow-2xs border border-[#E6DBC8] flex items-center gap-1.5">
                     <Waves className="w-4 h-4 text-[#1D5B8C]" />
@@ -3664,7 +3704,7 @@ export default function App() {
                 <div className="relative z-10 self-center my-auto flex flex-col items-center">
                   <div className="bg-[#0B3553] text-white px-4 py-2 rounded-xl shadow-lg border border-[#C8AD7F] text-center mb-2">
                     <p className="text-xs font-bold">The Forts Riverside Private Resort</p>
-                    <p className="text-[10px] text-[#F5EFE6]">theforts.pages.dev • Open for Bookings</p>
+                    <p className="text-[10px] text-[#F5EFE6]">theforts.ph • Open for Bookings</p>
                   </div>
                   <div className="w-10 h-10 rounded-full bg-[#F5EFE6] border-4 border-[#0B3553] shadow-lg flex items-center justify-center text-[#0B3553]">
                     <MapPin className="w-5 h-5" />
@@ -3730,14 +3770,16 @@ export default function App() {
       ========================================== */}
       <footer className="bg-[#0B3553] text-slate-200 py-14 border-t-4 border-[#C8AD7F]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Contact & Brand Info */}
-          <div className="text-center lg:text-left">
-              {/* Flex container to place the logo and text side-by-side */}
-              <div className="flex items-center justify-center lg:justify-start gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-10 border-b border-white/15">
+            
+            {/* COLUMN 1: Brand & Contact Info */}
+            <div className="md:col-span-5 space-y-6">
+              {/* Logo and Title */}
+              <div className="flex items-center justify-center md:justify-start gap-3.5">
                 <img 
                   src="/logo.png" 
                   alt="The Forts Logo" 
-                  className="w-12 h-12 rounded-full object-contain shadow-sm" 
+                  className="w-12 h-12 rounded-full object-contain shadow-sm bg-[#FAF8F5]" 
                 />
                 <div className="text-left">
                   <span className="block text-2xl font-brand-serif font-bold text-white leading-none">
@@ -3748,10 +3790,109 @@ export default function App() {
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-slate-400 mt-4 max-w-xs mx-auto lg:mx-0">
+              
+              <p className="text-xs text-slate-400 max-w-sm leading-relaxed text-center md:text-left">
                 A peaceful riverside haven designed for relaxation, fun, and unforgettable memories.
               </p>
+
+              {/* Contact Details */}
+              <div className="space-y-3 text-sm">
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=The+Forts+Riverside+Bustos+Bulacan"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center md:justify-start gap-2.5 hover:text-white transition-colors"
+                >
+                  <MapPin className="w-4 h-4 text-[#C8AD7F]" />
+                  Bustos, Bulacan
+                </a>
+                <a
+                  href="tel:+639605038082"
+                  className="flex items-center justify-center md:justify-start gap-2.5 hover:text-white transition-colors"
+                >
+                  <Phone className="w-4 h-4 text-[#C8AD7F]" />
+                  +63 960 503 8082
+                </a>
+                <a
+                  href="https://www.facebook.com/theforts.ph/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center md:justify-start gap-2.5 hover:text-white transition-colors"
+                >
+                  <FacebookIcon className="w-4 h-4 text-[#C8AD7F]" />
+                  facebook.com/theforts.ph
+                </a>
+                <a
+                  href="https://instagram.com/theforts.ph"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center md:justify-start gap-2.5 hover:text-white transition-colors"
+                >
+                  <InstagramIcon className="w-4 h-4 text-[#C8AD7F]" />
+                  @theforts.ph
+                </a>
+              </div>
             </div>
+
+            {/* COLUMN 2: Quick Links */}
+            <div className="md:col-span-3 space-y-2 text-sm text-center md:text-left">
+              <h4 className="font-bold text-[#F5EFE6] uppercase tracking-wider text-xs mb-3">
+                Quick Links
+              </h4>
+              <ul className="space-y-2">
+                <li>
+                  <a href="#booking-calendar" className="hover:text-white transition-colors">
+                    Rate Calculator
+                  </a>
+                </li>
+                <li>
+                  <a href="#rooms" className="hover:text-white transition-colors">
+                    Rooms
+                  </a>
+                </li>
+                <li>
+                  <a href="#packages" className="hover:text-white transition-colors">
+                    Packages & Rates
+                  </a>
+                </li>
+                <li>
+                  <a href="#amenities" className="hover:text-white transition-colors">
+                    Amenities
+                  </a>
+                </li>
+                <li>
+                  <a href="#rules" className="hover:text-white transition-colors">
+                    Policies & Rules
+                  </a>
+                </li>
+                <li>
+                  <a href="#faqs" className="hover:text-white transition-colors">
+                    FAQs
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* COLUMN 3: Official Reservation Form */}
+            <div className="md:col-span-4 space-y-3 text-sm text-center md:text-left flex flex-col items-center md:items-start">
+              <h4 className="font-bold text-[#F5EFE6] uppercase tracking-wider text-xs mb-1">
+                Official Reservation Form
+              </h4>
+              <p className="text-xs text-slate-300 leading-relaxed max-w-xs">
+                Ready to lock in your dates? Compute your package rate using our 3-Step calculator
+                or fill out our official booking form:
+              </p>
+              <a
+                href="https://forms.gle/STv73fxDoKJxDC4A7"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 bg-[#F5EFE6] hover:bg-white text-[#0B3553] font-bold text-xs px-4 py-3 rounded-xl transition-colors mt-2"
+              >
+                Open Google Booking Form
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          </div>
 
           {/* Copyright */}
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
