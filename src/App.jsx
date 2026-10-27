@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -531,7 +531,7 @@ const PACKAGES_DATA = [
     category: 'resort',
     bookingType: 'resort',
     subGroup: 'Overnight Exclusive (22 Hrs)',
-    name: 'Whole Resort Package (Up to 30 Pax)',
+    name: 'Whole Resort Package (Overnight Exclusive)',
     shortName: 'Whole Resort',
     timeLabel: '2PM–12NN (Up to 3D2N)',
     duration: '22 Hours per Night (2:00 PM – 12:00 NN)',
@@ -1011,9 +1011,9 @@ const REVIEWS_DATA = [
     stayType: 'Facebook Review',
     date: 'July 2025',
     rating: 5,
-    highlight: 'Ideal for family getaways, barkada trips, or even quiet solo retreats',
+    highlight: 'Whether you’re looking to unwind, reconnect, or simply escape the noise of the city—this resort is worth every peso.',
     comment:
-      'Highly recommended 👌 Just had the most amazing stay with our SFC Family at this private resort! From the moment we arrived, we were welcomed with warmth. Whether you’re looking to unwind, reconnect, or simply escape the noise of the city—this resort is worth every peso.'
+      'Highly recommended 👌 Just had the most amazing stay with our SFC Family at this private resort! From the moment we arrived, we were welcomed with warmth. Ideal for family getaways, barkada trips, or even quiet solo retreats.'
   }
 ];
 
@@ -1212,7 +1212,7 @@ const buildMonthDaysMondayFirst = (year, month, selectedPackage, customHolidays,
 };
 
 const RESORT_SYSTEM_PROMPT = `
-You are the official AI Concierge for "The Forts Riverside Private Resort" (website: https://theforts.pages.dev/), located near the scenic Angat River and Beltran Street.
+You are the official AI Concierge for "The Forts Riverside Private Resort" (website: https://theforts.pages.dev/), located in Bustos, Bulacan near the scenic Angat River and Beltran Street.
 Be warm, helpful, concise, and polite. Format prices in Philippine Pesos (₱). Only answer based on the official resort facts below:
 
 1. TWO MAIN WAYS TO BOOK OVERNIGHT / DAY STAYS + EVENTS:
@@ -1247,9 +1247,10 @@ Be warm, helpful, concise, and polite. Format prices in Philippine Pesos (₱). 
    - Smoking & Pets: Strictly no smoking inside air-conditioned rooms. Well-behaved pets are welcome on the grounds (keep off beds and out of the pool).
    - Payment, Cancellation & Rescheduling: 50% down payment (DP) is required to secure a booking; remaining 50% balance is paid upon arrival before room use. Down payment is non-refundable for guest-initiated cancellations or no-shows. One reschedule is allowed if requested at least 7 days before check-in (subject to availability).
 
-3. LOCATION & HOW TO BOOK:
-   - Location: Near Angat River and Beltran Street (searchable on Google Maps & Waze as "The Forts Riverside Private Resort").
-   - How to Book: Use the 3-Step Rate Calculator on the website to compute the exact rate, then click "Reserve Selected Dates" or submit via the official Google Form: https://forms.gle/STv73fxDoKJxDC4A7 or message on Facebook/Instagram.
+3. LOCATION, CONTACT & HOW TO BOOK:
+   - Location: Bustos, Bulacan, near Angat River and Beltran Street (searchable on Google Maps & Waze as "The Forts Riverside Private Resort").
+   - Contact Info: Mobile: +63 960 503 8082 | Facebook: https://www.facebook.com/theforts.ph/ | Instagram: @theforts.ph
+   - How to Book: Use the 3-Step Rate Calculator on the website to compute the exact rate, then click "Reserve Selected Dates" or submit via the official Google Form: https://forms.gle/STv73fxDoKJxDC4A7 or message us directly on Facebook or Instagram.
 `;
 
 const QUICK_CHAT_QUESTIONS = [
@@ -1539,6 +1540,113 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeLightboxAmenity, setActiveLightboxAmenity] = useState(null);
 
+  const BOOKING_SCRIPT_URL = (import.meta.env?.VITE_BOOKING_SCRIPT_URL || '').trim();
+
+  // Live Bookings from Google Sheets
+  const [sheetBookings, setSheetBookings] = useState([]);
+  const [loadingAvailability, setLoadingAvailability] = useState(true);
+
+  // Additional Form States for On-Site Submission
+  const [guestEmail, setGuestEmail] = useState('');
+  const [paymentRef, setPaymentRef] = useState('');
+  const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
+  const [bookingSubmitResult, setBookingSubmitResult] = useState(null); // { status: 'success'|'error', bookingId, message }
+
+  // Fetch live availability from Google Sheets
+  const fetchSheetAvailability = async () => {
+    if (!BOOKING_SCRIPT_URL || BOOKING_SCRIPT_URL.includes('YOUR_DEPLOYMENT_ID_HERE')) {
+      setLoadingAvailability(false);
+      return;
+    }
+    try {
+      setLoadingAvailability(true);
+      const res = await fetch(BOOKING_SCRIPT_URL);
+      const data = await res.json();
+      if (data.status === 'success' && Array.isArray(data.bookings)) {
+        setSheetBookings(data.bookings);
+      }
+    } catch (err) {
+      console.error('Failed to load sheet availability:', err);
+    } finally {
+      setLoadingAvailability(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSheetAvailability();
+  }, []);
+
+  // Submit reservation directly to Google Sheets + Send Emails
+  const handleSubmitDirectBooking = async (e) => {
+    e.preventDefault();
+    if (!guestName.trim() || !guestContact.trim()) return;
+
+    setIsSubmittingBooking(true);
+    setBookingSubmitResult(null);
+
+    // Occupied nights for overnight stays = all nights from check-in up to check-out minus 1 day
+    const occupiedDates = selectedPackage.isOvernightMultiDay
+      ? priceBreakdown.nightlyDetails.map((n) => n.dateKey)
+      : [checkInDateKey];
+
+    const payload = {
+      category: selectedBookingType,
+      packageId: selectedPackage.id,
+      packageName: selectedPackage.name,
+      checkInDate: checkInDateKey,
+      checkOutDate: checkOutDateKey,
+      occupiedDates: occupiedDates,
+      guestName: guestName.trim(),
+      guestEmail: guestEmail.trim(),
+      guestPhone: guestContact.trim(),
+      guestCount: guestCount,
+      totalRate: priceBreakdown.total,
+      downPayment50: priceBreakdown.downPayment50,
+      notes: [
+        extraSingleMattresses > 0 ? `${extraSingleMattresses}x Single Mattress` : '',
+        extraDoubleMattresses > 0 ? `${extraDoubleMattresses}x Double Mattress` : '',
+        includeGasFee && !selectedPackage.gasIncluded ? 'Add LPG (+₱400)' : '',
+        paymentRef ? `GCash/Bank Ref: ${paymentRef}` : '',
+        guestNotes
+      ]
+        .filter(Boolean)
+        .join(' | ')
+    };
+
+    try {
+      const response = await fetch(BOOKING_SCRIPT_URL, {
+        method: 'POST',
+        // text/plain avoids CORS preflight issues with Google Apps Script while still sending JSON
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        setBookingSubmitResult({
+          status: 'success',
+          bookingId: result.bookingId,
+          message:
+            'Your reservation hold has been recorded! Please complete your 50% down payment within 24 hours.'
+        });
+        // Immediately refresh calendar availability so dates cross out right away
+        fetchSheetAvailability();
+      } else {
+        setBookingSubmitResult({
+          status: 'error',
+          message: result.message || 'Unable to submit booking. Please try again.'
+        });
+      }
+    } catch (error) {
+      setBookingSubmitResult({
+        status: 'error',
+        message: 'Network error while connecting to booking server. Please try again.'
+      });
+    } finally {
+      setIsSubmittingBooking(false);
+    }
+  };
+
   // Progressive Compact Step State:
   // 1 = Only Step 1 expanded
   // 2 = Step 1 retracts into 3 icon buttons; Step 2 expanded
@@ -1678,10 +1786,61 @@ export default function App() {
     return { month: currentMonth + 1, year: currentYear };
   }, [currentMonth, currentYear]);
 
+  // Checks if a dateKey is already Reserved or Booked for the currently selected package
+  const getDateBookingStatus = (dateKey, pkg) => {
+    if (!sheetBookings || sheetBookings.length === 0) return { isBlocked: false, statusLabel: null };
+    
+    // Ensure the dateKey we are checking is trimmed
+    const cleanTargetDate = dateKey.trim();
+
+    for (const b of sheetBookings) {
+      if (b.status !== 'Reserved' && b.status !== 'Booked') continue;
+      
+      // Ensure the occupied array exists and safely check it
+      if (!b.occupiedDates || !Array.isArray(b.occupiedDates)) continue;
+      
+      // Check if the current calendar cell (cleanTargetDate) is inside this booking's blocked dates
+      const isDateBlocked = b.occupiedDates.some(d => d.trim() === cleanTargetDate);
+      if (!isDateBlocked) continue;
+
+      const existingCategory = String(b.category).trim();
+      const currentCategory = String(pkg.category).trim();
+
+      const isExistingExclusive = existingCategory === 'resort' || existingCategory === 'events';
+      const isCurrentExclusive = currentCategory === 'resort' || currentCategory === 'events';
+
+      // Case 1: Existing booking is Exclusive Resort/Event -> Blocks ALL packages & rooms
+      if (isExistingExclusive) {
+        return { isBlocked: true, statusLabel: b.status };
+      }
+
+      // Case 2: User wants Exclusive Resort/Event, but a Staycation room is already taken
+      if (isCurrentExclusive) {
+        return { isBlocked: true, statusLabel: b.status };
+      }
+
+      // Case 3: Both are Staycation rooms -> Only block if it's the EXACT SAME room
+      if (String(b.packageId).trim() === String(pkg.id).trim()) {
+        return { isBlocked: true, statusLabel: b.status };
+      }
+    }
+    return { isBlocked: false, statusLabel: null };
+  };
+
   const firstMonthCells = useMemo(
     () =>
-      buildMonthDaysMondayFirst(currentYear, currentMonth, selectedPackage, customHolidays, today),
-    [currentYear, currentMonth, selectedPackage, customHolidays, today]
+      buildMonthDaysMondayFirst(
+        currentYear,
+        currentMonth,
+        selectedPackage,
+        customHolidays,
+        today
+      ).map((cell) =>
+        cell
+          ? { ...cell, ...getDateBookingStatus(cell.dateKey, selectedPackage) }
+          : null
+      ),
+    [currentYear, currentMonth, selectedPackage, customHolidays, today, sheetBookings]
   );
 
   const secondMonthCells = useMemo(
@@ -1692,8 +1851,12 @@ export default function App() {
         selectedPackage,
         customHolidays,
         today
+      ).map((cell) =>
+        cell
+          ? { ...cell, ...getDateBookingStatus(cell.dateKey, selectedPackage) }
+          : null
       ),
-    [secondMonthYear, selectedPackage, customHolidays, today]
+    [secondMonthYear, selectedPackage, customHolidays, today, sheetBookings]
   );
 
   // Handle Date Click (Supports max 3 days = 3 Days & 2 Nights for overnight/staycation)
@@ -1992,16 +2155,20 @@ export default function App() {
 
                 <button
                   type="button"
-                  disabled={dayItem.isPast}
+                  disabled={dayItem.isPast || dayItem.isBlocked}
                   onClick={() => handleDayClick(dayItem)}
                   title={
-                    dayItem.holidayName
+                    dayItem.isBlocked
+                      ? `${dayItem.statusLabel} (${selectedPackage.shortName} unavailable)`
+                      : dayItem.holidayName
                       ? `${dayItem.holidayName} (Holiday Rate Applies)`
                       : undefined
                   }
                   className={`relative z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm transition-all select-none ${
                     dayItem.isPast
                       ? 'text-slate-300 line-through cursor-not-allowed font-normal'
+                      : dayItem.isBlocked
+                      ? 'bg-rose-50 text-rose-300 line-through cursor-not-allowed font-normal'
                       : isStart || isEnd
                       ? 'bg-[#0B3553] text-white font-bold shadow-md ring-2 ring-[#C8AD7F] cursor-pointer scale-[1.03]'
                       : isMiddle
@@ -3197,7 +3364,7 @@ export default function App() {
                     <tr className="bg-[#F5EFE6] text-[#0B3553] text-xs font-extrabold uppercase">
                       <th className="py-3.5 px-4 border-b border-[#E6DBC8]">Room</th>
                       <th className="py-3.5 px-4 border-b border-[#E6DBC8]">Weekday</th>
-                      <th className="py-3.5 px-4 border-b border-[#E6DBC8]">Weekend / Holiday</th>
+                      <th className="py-3.5 px-4 border-b border-[#E6DBC8]">Wkend / Hol</th>
                       <th className="py-3.5 px-4 border-b border-[#E6DBC8] text-right"></th>
                     </tr>
                   </thead>
@@ -3654,6 +3821,45 @@ export default function App() {
 
             <div className="lg:col-span-7">
               <div className="rounded-2xl overflow-hidden border border-[#E6DBC8] shadow-xs bg-[#FAF8F5] relative h-72 sm:h-80 flex flex-col justify-between p-6">
+                
+                {/* ---> THIS SVG IS THE MISSING MAP BACKGROUND <--- */}
+                <svg
+                  className="absolute inset-0 w-full h-full object-cover opacity-90"
+                  viewBox="0 0 800 500"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  preserveAspectRatio="xMidYMid slice"
+                >
+                  <rect width="800" height="500" fill="#F8FAFC" />
+                  <path
+                    d="M0 0H800V220C620 260 420 180 200 260C80 300 0 270 0 270V0Z"
+                    fill="#F5EFE6"
+                  />
+                  <path
+                    d="M0 360C220 330 450 410 800 320V500H0V360Z"
+                    fill="#EFE6D5"
+                  />
+                  {/* Angat River */}
+                  <path
+                    d="M-50 280C160 220 350 350 560 260C680 210 760 230 850 200L850 330C720 360 620 330 490 380C290 450 140 340 -50 390Z"
+                    fill="#1D5B8C"
+                    fillOpacity="0.85"
+                  />
+                  {/* Street Lines */}
+                  <path
+                    d="M120 0L290 250L650 160"
+                    stroke="#FFFFFF"
+                    strokeWidth="14"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M120 0L290 250L650 160"
+                    stroke="#C8AD7F"
+                    strokeWidth="2"
+                    strokeDasharray="8 8"
+                  />
+                </svg>
+
                 <div className="relative z-10 flex justify-between items-start">
                   <span className="bg-white/95 backdrop-blur-xs text-[#0B3553] text-xs font-bold px-3.5 py-2 rounded-xl shadow-2xs border border-[#E6DBC8] flex items-center gap-1.5">
                     <Waves className="w-4 h-4 text-[#1D5B8C]" />
@@ -3664,7 +3870,7 @@ export default function App() {
                 <div className="relative z-10 self-center my-auto flex flex-col items-center">
                   <div className="bg-[#0B3553] text-white px-4 py-2 rounded-xl shadow-lg border border-[#C8AD7F] text-center mb-2">
                     <p className="text-xs font-bold">The Forts Riverside Private Resort</p>
-                    <p className="text-[10px] text-[#F5EFE6]">theforts.pages.dev • Open for Bookings</p>
+                    <p className="text-[10px] text-[#F5EFE6]">theforts.ph • Open for Bookings</p>
                   </div>
                   <div className="w-10 h-10 rounded-full bg-[#F5EFE6] border-4 border-[#0B3553] shadow-lg flex items-center justify-center text-[#0B3553]">
                     <MapPin className="w-5 h-5" />
@@ -3730,14 +3936,16 @@ export default function App() {
       ========================================== */}
       <footer className="bg-[#0B3553] text-slate-200 py-14 border-t-4 border-[#C8AD7F]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Contact & Brand Info */}
-          <div className="text-center lg:text-left">
-              {/* Flex container to place the logo and text side-by-side */}
-              <div className="flex items-center justify-center lg:justify-start gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-10 border-b border-white/15">
+            
+            {/* COLUMN 1: Brand & Contact Info */}
+            <div className="md:col-span-5 space-y-6">
+              {/* Logo and Title */}
+              <div className="flex items-center justify-center md:justify-start gap-3.5">
                 <img 
                   src="/logo.png" 
                   alt="The Forts Logo" 
-                  className="w-12 h-12 rounded-full object-contain shadow-sm" 
+                  className="w-12 h-12 rounded-full object-contain shadow-sm bg-[#FAF8F5]" 
                 />
                 <div className="text-left">
                   <span className="block text-2xl font-brand-serif font-bold text-white leading-none">
@@ -3748,10 +3956,109 @@ export default function App() {
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-slate-400 mt-4 max-w-xs mx-auto lg:mx-0">
+              
+              <p className="text-xs text-slate-400 max-w-sm leading-relaxed text-center md:text-left">
                 A peaceful riverside haven designed for relaxation, fun, and unforgettable memories.
               </p>
+
+              {/* Contact Details */}
+              <div className="space-y-3 text-sm">
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=The+Forts+Riverside+Bustos+Bulacan"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center md:justify-start gap-2.5 hover:text-white transition-colors"
+                >
+                  <MapPin className="w-4 h-4 text-[#C8AD7F]" />
+                  Bustos, Bulacan
+                </a>
+                <a
+                  href="tel:+639605038082"
+                  className="flex items-center justify-center md:justify-start gap-2.5 hover:text-white transition-colors"
+                >
+                  <Phone className="w-4 h-4 text-[#C8AD7F]" />
+                  +63 960 503 8082
+                </a>
+                <a
+                  href="https://www.facebook.com/theforts.ph/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center md:justify-start gap-2.5 hover:text-white transition-colors"
+                >
+                  <FacebookIcon className="w-4 h-4 text-[#C8AD7F]" />
+                  facebook.com/theforts.ph
+                </a>
+                <a
+                  href="https://instagram.com/theforts.ph"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center md:justify-start gap-2.5 hover:text-white transition-colors"
+                >
+                  <InstagramIcon className="w-4 h-4 text-[#C8AD7F]" />
+                  @theforts.ph
+                </a>
+              </div>
             </div>
+
+            {/* COLUMN 2: Quick Links */}
+            <div className="md:col-span-3 space-y-2 text-sm text-center md:text-left">
+              <h4 className="font-bold text-[#F5EFE6] uppercase tracking-wider text-xs mb-3">
+                Quick Links
+              </h4>
+              <ul className="space-y-2">
+                <li>
+                  <a href="#booking-calendar" className="hover:text-white transition-colors">
+                    Rate Calculator
+                  </a>
+                </li>
+                <li>
+                  <a href="#rooms" className="hover:text-white transition-colors">
+                    Rooms
+                  </a>
+                </li>
+                <li>
+                  <a href="#packages" className="hover:text-white transition-colors">
+                    Packages & Rates
+                  </a>
+                </li>
+                <li>
+                  <a href="#amenities" className="hover:text-white transition-colors">
+                    Amenities
+                  </a>
+                </li>
+                <li>
+                  <a href="#rules" className="hover:text-white transition-colors">
+                    Policies & Rules
+                  </a>
+                </li>
+                <li>
+                  <a href="#faqs" className="hover:text-white transition-colors">
+                    FAQs
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* COLUMN 3: Official Reservation Form */}
+            <div className="md:col-span-4 space-y-3 text-sm text-center md:text-left flex flex-col items-center md:items-start">
+              <h4 className="font-bold text-[#F5EFE6] uppercase tracking-wider text-xs mb-1">
+                Official Reservation Form
+              </h4>
+              <p className="text-xs text-slate-300 leading-relaxed max-w-xs">
+                Ready to lock in your dates? Compute your package rate using our 3-Step calculator
+                or fill out our official booking form:
+              </p>
+              <a
+                href="https://forms.gle/STv73fxDoKJxDC4A7"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 bg-[#F5EFE6] hover:bg-white text-[#0B3553] font-bold text-xs px-4 py-3 rounded-xl transition-colors mt-2"
+              >
+                Open Google Booking Form
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          </div>
 
           {/* Copyright */}
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
@@ -3805,7 +4112,7 @@ export default function App() {
       )}
 
       {/* ==========================================
-          BOOKING SUMMARY & RESERVATION MODAL
+          DIRECT ON-SITE RESERVATION FORM MODAL
       ========================================== */}
       {bookingModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-xs">
@@ -3813,7 +4120,7 @@ export default function App() {
             <div className="p-5 sm:p-6 bg-[#0B3553] text-white border-b-2 border-[#C8AD7F] flex items-center justify-between">
               <div>
                 <span className="text-[11px] uppercase tracking-widest text-[#E6DBC8] font-bold">
-                  {activeBookingTypeObj.title} Summary
+                  Direct Online Reservation
                 </span>
                 <h3 className="text-xl font-brand-serif font-bold mt-0.5">
                   {selectedPackage.name}
@@ -3821,128 +4128,200 @@ export default function App() {
               </div>
               <button
                 type="button"
-                onClick={() => setBookingModalOpen(false)}
+                onClick={() => {
+                  setBookingModalOpen(false);
+                  setBookingSubmitResult(null);
+                }}
                 className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-5 sm:p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-[#0B3553] mb-1">
-                    Your Name (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={guestName}
-                    onChange={(e) => setGuestName(e.target.value)}
-                    placeholder="Juan Dela Cruz"
-                    className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553]"
-                  />
+            {bookingSubmitResult?.status === 'success' ? (
+              /* SUCCESS CONFIRMATION VIEW WITH GCASH QR */
+              <div className="p-6 sm:p-8 text-center space-y-4">
+                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-8 h-8" />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-[#0B3553] mb-1">
-                    Contact Number / FB
-                  </label>
-                  <input
-                    type="text"
-                    value={guestContact}
-                    onChange={(e) => setGuestContact(e.target.value)}
-                    placeholder="0917 XXX XXXX"
-                    className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#0B3553] mb-1">
-                  Special Requests / Meal Schedule Notes (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={guestNotes}
-                  onChange={(e) => setGuestNotes(e.target.value)}
-                  placeholder="e.g., Silog breakfast preference, extra mattress request..."
-                  className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553]"
-                />
-              </div>
-
-              <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6DBC8] text-xs sm:text-sm space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Selected Dates:</span>
-                  <span className="font-bold text-[#0B3553] text-right">
-                    {selectedPackage.isOvernightMultiDay
-                      ? `${formatReadableDate(checkInDateKey)} → ${formatReadableDate(
-                          checkOutDateKey
-                        )}`
-                      : formatReadableDate(checkInDateKey)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Duration:</span>
-                  <span className="font-semibold text-slate-800">
-                    {selectedPackage.isEvent
-                      ? eventTimePreference
-                      : priceBreakdown.stayDurationLabel}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Registered Guests:</span>
-                  <span className="font-semibold text-slate-800">
-                    {guestCount} Pax ({priceBreakdown.excessGuests} extra)
-                  </span>
-                </div>
-                {!selectedPackage.isEvent && (
-                  <>
-                    <div className="pt-2 border-t border-[#E6DBC8] flex justify-between items-baseline">
-                      <span className="font-bold text-[#0B3553]">Total Computed Rate:</span>
-                      <span className="text-xl font-brand-serif font-extrabold text-[#0B3553]">
-                        {formatPHP(priceBreakdown.total)}
-                      </span>
+                <span className="inline-block text-xs font-extrabold uppercase tracking-widest bg-[#F5EFE6] text-[#0B3553] border border-[#E6DBC8] px-3.5 py-1 rounded-full">
+                  Ref ID: {bookingSubmitResult.bookingId}
+                </span>
+                <h4 className="text-2xl font-brand-serif font-bold text-[#0B3553]">
+                  Dates Reserved for 24 Hours!
+                </h4>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  Your dates are now crossed out on our calendar. To officially lock in your booking, please settle the <strong>50% Down Payment ({formatPHP(priceBreakdown.downPayment50)})</strong> within 24 hours.
+                </p>
+                
+                {/* PAYMENT DETAILS & QR BOX */}
+                <div className="p-5 rounded-xl bg-[#FAF8F5] border border-[#E6DBC8] text-left text-xs sm:text-sm shadow-inner">
+                  <p className="font-bold text-[#0B3553] border-b border-[#E6DBC8] pb-2 mb-3">
+                    Payment Details
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-5 items-center sm:items-start">
+                    {/* GCash QR Image from Public Folder */}
+                    <img 
+                      src="/gcash-qr.png" 
+                      alt="GCash QR Code" 
+                      className="w-32 h-32 object-cover rounded-lg shadow-sm border border-slate-200 bg-white p-1" 
+                      onError={(e) => { e.target.style.display = 'none'; }} // Hides if image is missing
+                    />
+                    <div className="space-y-2 text-slate-600 w-full">
+                      <p><strong>GCash:</strong> 0960 503 8082 (The Forts)</p>
+                      <p><strong>BDO Bank:</strong> 0012 3456 7890 (The Forts Resort)</p>
+                      <div className="mt-2 text-[10px] sm:text-xs text-rose-700 font-bold bg-rose-50 p-2 rounded border border-rose-100 leading-relaxed">
+                        ⚠️ Please include your Reference ID (<strong>{bookingSubmitResult.bookingId}</strong>) in your transfer notes!
+                      </div>
                     </div>
-                    <div className="flex justify-between text-xs text-[#8A6D3B] font-bold">
-                      <span>Required 50% Down Payment:</span>
-                      <span>{formatPHP(priceBreakdown.downPayment50)}</span>
-                    </div>
-                  </>
-                )}
-              </div>
+                  </div>
+                  <p className="text-slate-600 pt-4 mt-4 border-t border-[#E6DBC8] leading-relaxed">
+                    Once paid, send your screenshot & Ref ID to our Facebook page (<strong>facebook.com/theforts.ph</strong>).
+                  </p>
+                </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={handleCopySummary}
-                  className="flex-1 py-3 px-4 rounded-xl bg-[#F5EFE6] border border-[#E6DBC8] hover:bg-[#ebe1d1] text-[#0B3553] font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setBookingModalOpen(false);
+                    setBookingSubmitResult(null);
+                  }}
+                  className="w-full py-3.5 mt-2 rounded-xl bg-[#0B3553] hover:bg-[#16486B] text-white font-bold text-sm cursor-pointer shadow-md transition-colors"
                 >
-                  {copiedSuccess ? (
+                  Done
+                </button>
+              </div>
+            ) : (
+              /* RESERVATION FORM VIEW */
+              <form
+                onSubmit={handleSubmitDirectBooking}
+                className="p-5 sm:p-6 space-y-4 max-h-[82vh] overflow-y-auto"
+              >
+                {bookingSubmitResult?.status === 'error' && (
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+                    {bookingSubmitResult.message}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-[#0B3553] mb-1">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      placeholder="Juan Dela Cruz"
+                      className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#0B3553] mb-1">
+                      Mobile Number *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={guestContact}
+                      onChange={(e) => setGuestContact(e.target.value)}
+                      placeholder="0917 XXX XXXX"
+                      className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-[#0B3553] mb-1">
+                      Email Address (For Confirmation) *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={guestEmail}
+                      onChange={(e) => setGuestEmail(e.target.value)}
+                      placeholder="juan@email.com"
+                      className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#0B3553] mb-1">
+                      GCash / Bank Ref # (If paid)
+                    </label>
+                    <input
+                      type="text"
+                      value={paymentRef}
+                      onChange={(e) => setPaymentRef(e.target.value)}
+                      placeholder="Optional (or pay within 24h)"
+                      className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#0B3553] mb-1">
+                    Special Requests / Notes (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={guestNotes}
+                    onChange={(e) => setGuestNotes(e.target.value)}
+                    placeholder="e.g., Target arrival time, meal preference..."
+                    className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553]"
+                  />
+                </div>
+
+                {/* Summary Box */}
+                <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6DBC8] text-xs sm:text-sm space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Selected Dates:</span>
+                    <span className="font-bold text-[#0B3553] text-right">
+                      {selectedPackage.isOvernightMultiDay
+                        ? `${formatReadableDate(checkInDateKey)} → ${formatReadableDate(
+                            checkOutDateKey
+                          )}`
+                        : formatReadableDate(checkInDateKey)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Registered Guests:</span>
+                    <span className="font-semibold text-slate-800">
+                      {guestCount} Pax ({priceBreakdown.excessGuests} extra)
+                    </span>
+                  </div>
+                  {!selectedPackage.isEvent && (
                     <>
-                      <Check className="w-4 h-4 text-[#0B3553]" />
-                      Copied to Clipboard!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4 text-[#0B3553]" />
-                      Copy Summary
+                      <div className="pt-2 border-t border-[#E6DBC8] flex justify-between items-baseline">
+                        <span className="font-bold text-[#0B3553]">Total Computed Rate:</span>
+                        <span className="text-xl font-brand-serif font-extrabold text-[#0B3553]">
+                          {formatPHP(priceBreakdown.total)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-xs text-[#8A6D3B] font-bold">
+                        <span>Required 50% Down Payment (24-Hr Hold):</span>
+                        <span>{formatPHP(priceBreakdown.downPayment50)}</span>
+                      </div>
                     </>
                   )}
-                </button>
+                </div>
 
-                <a
-                  href="https://forms.gle/STv73fxDoKJxDC4A7"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex-1 py-3 px-4 rounded-xl bg-[#0B3553] hover:bg-[#16486B] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors text-center"
+                <button
+                  type="submit"
+                  disabled={isSubmittingBooking}
+                  className="w-full py-3.5 px-5 rounded-xl bg-[#0B3553] hover:bg-[#16486B] disabled:bg-slate-400 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
-                  Open Booking Form
-                  <ExternalLink className="w-4 h-4 text-[#F5EFE6]" />
-                </a>
-              </div>
-            </div>
+                  {isSubmittingBooking
+                    ? 'Submitting Reservation...'
+                    : 'Submit Reservation & Hold Dates'}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}
+
       <FortsAIChatbot />
     </div>
   );
