@@ -1215,7 +1215,7 @@ const buildMonthDaysMondayFirst = (year, month, selectedPackage, customHolidays,
 // ============================================================================
 
 const RESORT_SYSTEM_PROMPT = `
-You are the official AI Concierge for "The Forts Riverside Private Resort" (website: https://theforts.ph), located near the scenic Angat River and Beltran Street.
+You are the official AI Concierge for "The Forts Riverside Private Resort" (website: https://theforts.pages.dev/), located near the scenic Angat River and Beltran Street.
 Be warm, helpful, concise, and polite. Format prices in Philippine Pesos (₱). Only answer based on the official resort facts below:
 
 1. TWO MAIN WAYS TO BOOK OVERNIGHT / DAY STAYS + EVENTS:
@@ -1299,8 +1299,8 @@ function FortsAIChatbot() {
     }
   ]);
 
-  // Reads your Gemini API Key from your .env file (VITE_GEMINI_API_KEY)
-  const GEMINI_API_KEY = import.meta.env?.VITE_GEMINI_API_KEY || '';
+  // Reads your Gemini API Key and removes any accidental spaces
+  const GEMINI_API_KEY = (import.meta.env?.VITE_GEMINI_API_KEY || '').trim();
 
   const sendMessage = async (customQuestion = null) => {
     const textToSend = (customQuestion ?? input).trim();
@@ -1312,7 +1312,6 @@ function FortsAIChatbot() {
     setIsLoading(true);
 
     try {
-      // If no API key is configured yet, use the built-in local fallback
       if (!GEMINI_API_KEY) {
         await new Promise((r) => setTimeout(r, 450));
         setMessages((prev) => [
@@ -1323,34 +1322,95 @@ function FortsAIChatbot() {
         return;
       }
 
-      // Format conversation history for Gemini API
+      // 1. Ask Google which Flash models are enabled for your specific API key
+      let targetModel = 'models/gemini-flash-latest';
+      const listRes = await fetch(
+        'https://generativelanguage.googleapis.com/v1beta/models',
+        {
+          headers: { 'x-goog-api-key': GEMINI_API_KEY }
+        }
+      );
+
+      if (listRes.ok) {
+        const listData = await listRes.json();
+        const availableModels = (listData.models || [])
+          .filter(
+            (m) =>
+              m.supportedGenerationMethods?.includes('generateContent') &&
+              m.name.includes('gemini') &&
+              !m.name.includes('image') &&
+              !m.name.includes('tts') &&
+              !m.name.includes('live')
+          )
+          .map((m) => m.name);
+
+        console.log('Available Gemini Text Models for your key:', availableModels);
+
+        // Prefer fast Flash-Lite or latest Flash aliases first for instant replies
+        const preferredOrder = [
+          'models/gemini-3.5-flash-lite',
+          'models/gemini-3.1-flash-lite',
+          'models/gemini-flash-lite-latest',
+          'models/gemini-flash-latest',
+          'models/gemini-3.6-flash',
+          'models/gemini-3.8-flash'
+        ];
+
+        const matched =
+          preferredOrder.find((p) => availableModels.includes(p)) ||
+          availableModels.find((m) => m.includes('flash')) ||
+          availableModels[0];
+
+        if (matched) targetModel = matched;
+      }
+
+      console.log('Using Gemini Model:', targetModel);
+
       const contents = updatedMessages.map((msg) => ({
         role: msg.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: msg.text }]
       }));
 
+      // 2. Call generateContent using the detected model and x-goog-api-key header
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s limit
+
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': GEMINI_API_KEY
+          },
           body: JSON.stringify({
             systemInstruction: {
               parts: [{ text: RESORT_SYSTEM_PROMPT }]
             },
             contents
-          })
+          }),
+          signal: controller.signal
         }
       );
 
+      clearTimeout(timeoutId);
+
       const data = await response.json();
+      console.log('Gemini API Response:', response.status, data);
+
+      if (!response.ok) {
+        throw new Error(
+          `API Error ${response.status}: ${data?.error?.message || 'Unknown Error'}`
+        );
+      }
+
       const aiReply =
         data?.candidates?.[0]?.content?.parts?.[0]?.text ||
         getLocalFallbackAnswer(textToSend);
 
       setMessages((prev) => [...prev, { role: 'assistant', text: aiReply }]);
     } catch (error) {
-      // Fallback gracefully if offline or quota exceeded
+      console.error('Chatbot Failed:', error);
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', text: getLocalFallbackAnswer(textToSend) }
@@ -2628,7 +2688,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Bottom Bar: Keyboard Icon + Clear / Done Buttons */}
+                {/* Bottom Bar: Keyboard Icon + Clear Buttons */}
                 <div className="mt-6 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2 text-xs text-slate-500">
                     <Keyboard className="w-4 h-4 text-slate-400" />
@@ -2647,22 +2707,7 @@ export default function App() {
                     >
                       Clear dates
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!selectedDates.length) {
-                          setSelectedDates([
-                            initialStartKey,
-                            addDaysToKey(initialStartKey, 1)
-                          ]);
-                        }
-                      }}
-                      className="px-5 py-2.5 rounded-full bg-[#0B3553] hover:bg-[#16486B] text-white text-xs sm:text-sm font-bold transition-colors cursor-pointer"
-                    >
-                      {selectedPackage.isOvernightMultiDay && selectedDates.length === 1
-                        ? 'Select Check-Out'
-                        : 'Done'}
-                    </button>
+                    
                   </div>
                 </div>
               </div>
@@ -2882,7 +2927,7 @@ export default function App() {
                             <p className="text-xs text-slate-500">
                               {selectedPackage.gasIncluded
                                 ? 'Included Free with Staycation'
-                                : 'Optional add-on for Resort Booking (+₱400)'}
+                                : 'Optional add-on'}
                             </p>
                           </div>
 
