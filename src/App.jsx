@@ -46,7 +46,10 @@ import {
   Mic2,
   Coffee,
   CreditCard,
-  Keyboard
+  Keyboard,
+  MessageCircle,
+  Send,
+  Bot
 } from 'lucide-react';
 
 // ============================================================================
@@ -62,10 +65,10 @@ const SITE_IMAGES = {
   recreationalArea: '/images/recreation.png',
   gardenArea: '/images/garden.png',
   // 4 Official Staycation Rooms from PDF
-  vistaRoom: '/images/overlooking.png',
-  hideoutRoom: '/images/family.png',
-  riverLoftRoom: '/images/barkada.png',
-  cozyDenRoom: '/images/cozy.png'
+  vistaRoom: '/overlooking.jpg',
+  hideoutRoom: '/hideout.jpg',
+  riverLoftRoom: '/barkada.jpg',
+  cozyDenRoom: '/cozy.jpg'
 };
 
 const FALLBACK_IMAGES = {
@@ -141,7 +144,7 @@ const BOOKING_TYPES = [
     badge: 'From ₱2,000 / Night',
     icon: BedDouble,
     shortDesc:
-      'Choose from The Cozy Den, The Vista, The Hideout, or The River Loft. Includes 22-hr stay, Silog breakfast per guest, pool access, LPG & karaoke.',
+      'Choose from our rooms. Available to book a week before the date only.',
     selectionPrompt: 'Step 2: Select Your Staycation Room'
   },
   {
@@ -152,7 +155,7 @@ const BOOKING_TYPES = [
     badge: 'Exclusive Use',
     icon: Waves,
     shortDesc:
-      'Private access to the swimming pools, riverside balcony, function space & rooms. Choose Day Tour, Night Tour, or Overnight Exclusive.',
+      'Private access to the swimming pools, riverside balcony, function space & rooms.',
     selectionPrompt: 'Step 2: Select Your Exclusive Resort Package'
   },
   {
@@ -163,7 +166,7 @@ const BOOKING_TYPES = [
     badge: 'Custom Quote',
     icon: PartyPopper,
     shortDesc:
-      'Celebrate milestones by the scenic Angat River. Select your target date on the calendar to request a custom event quotation.',
+      'Celebrate milestones by the scenic Angat River.',
     selectionPrompt: 'Step 2: Select Your Event Type'
   }
 ];
@@ -358,7 +361,7 @@ const PACKAGES_DATA = [
     maxExtendedHours: 2,
     extendedHourRate: 500,
     badge: 'Daytime Escape',
-    includedRooms: '1 Complimentary Room (The Vista - Overlooking Room)',
+    includedRooms: 'The Vista - Overlooking Room',
     description:
       'Includes exclusive access to the resort’s pools, riverside balcony, kitchen, function space, and recreational facilities for a fun-filled daytime escape.',
     inclusions: [
@@ -396,7 +399,7 @@ const PACKAGES_DATA = [
     maxExtendedHours: 2,
     extendedHourRate: 500,
     badge: 'Evening Getaway',
-    includedRooms: '1 Complimentary Room (The Vista - Overlooking Room)',
+    includedRooms: 'The Vista - Overlooking Room',
     description:
       'Enjoy evening relaxation with warm ambient string lighting, peaceful riverside views, night swimming, and exclusive access to the resort’s amenities.',
     inclusions: [
@@ -1208,6 +1211,267 @@ const buildMonthDaysMondayFirst = (year, month, selectedPackage, customHolidays,
 };
 
 // ============================================================================
+// AI CHAT SUPPORT KNOWLEDGE BASE & COMPONENT (GEMINI API + SMART FALLBACK)
+// ============================================================================
+
+const RESORT_SYSTEM_PROMPT = `
+You are the official AI Concierge for "The Forts Riverside Private Resort" (website: https://theforts.ph), located near the scenic Angat River and Beltran Street.
+Be warm, helpful, concise, and polite. Format prices in Philippine Pesos (₱). Only answer based on the official resort facts below:
+
+1. TWO MAIN WAYS TO BOOK OVERNIGHT / DAY STAYS + EVENTS:
+   A) ROOM-ONLY STAYCATION BOOKINGS (22-Hour Stay: 2:00 PM Check-in to 12:00 NN Check-out):
+      - THE COZY DEN (Cozy Room, 2–4 Guests): ₱2,000 Weekday (Mon–Thu) | ₱2,500 Weekend/Holiday. Air-conditioned, 4 single floor mattresses, private bathroom.
+      - THE VISTA (Overlooking Room, 2–4 Guests): ₱2,800 Weekday | ₱3,300 Weekend/Holiday. Air-conditioned, 2 double beds, sofa, private bathroom. Extra mattress allowed.
+      - THE HIDEOUT (Small Barkada Room, 4–6 Guests): ₱3,000 Weekday | ₱3,500 Weekend/Holiday. Air-conditioned, 2 single bunk beds, 1 double bed, shared bathroom.
+      - THE RIVER LOFT (Barkada Room, 10–15 Guests): ₱5,000 Weekday | ₱6,000 Weekend/Holiday. Air-conditioned, 2 double bunk beds, 3 single bunk beds, private bathroom. Extra mattress allowed.
+      * Staycation Inclusions: 22-hour room stay, 1 free Silog breakfast per registered guest, swimming pool access, kitchen access & FREE use of LPG for cooking, riverside & common area access, Wi-Fi, parking, and karaoke use (until 10:00 PM).
+      * Shared Access Note: Room-only bookings do not grant exclusive use of the entire resort. Weekday/non-holiday bookings are accepted in advance; weekend/holiday room-only bookings open 7 days before the target date if no whole-resort booking is confirmed.
+      * Staycation Extra Charges: Extra guest is ₱300/person per stay (includes pool access & Silog breakfast). Extra single mattress is ₱150/night; extra double mattress is ₱200/night (subject to availability).
+
+   B) EXCLUSIVE RESORT BOOKINGS (Private access to pools, riverside balcony, function space, kitchen, court & included rooms):
+      - Day Tour (9 Hrs, 8:00 AM – 5:00 PM, up to 15 pax): ₱4,500 Weekday | ₱5,000 Fri–Sun/Holiday. Includes 1 complimentary room (The Vista). Excess guest: ₱150/head.
+      - Night Tour (11 Hrs, 7:00 PM – 6:00 AM, up to 15 pax): ₱6,999 Weekday | ₱7,500 Fri–Sun/Holiday. Includes 1 complimentary room (The Vista). Excess guest: ₱200/head.
+      - Family Overnight Exclusive (22 Hrs, 2:00 PM – 12:00 NN, 4–8 pax): ₱7,999 Weekday | ₱8,999 Fri–Sun/Holiday.
+      - Barkada Overnight Exclusive (22 Hrs, 9–15 pax): ₱10,999 Weekday | ₱11,999 Fri–Sun/Holiday.
+      - Mid Group Overnight Exclusive (22 Hrs, 16–20 pax): ₱13,999 Weekday | ₱14,999 Fri–Sun/Holiday (Includes The River Loft & The Hideout).
+      - Whole Resort Package (22 Hrs, up to 30 pax): ₱15,999 Weekday | ₱16,499 Fri–Sun/Holiday (Includes ALL 4 air-conditioned rooms).
+      * Resort Package Add-ons: Excess overnight guest is ₱200/head. Optional Kitchen LPG use is +₱400. Extended hours: ₱500/hr (max 2 hours, subject to availability).
+
+   C) MULTI-DAY OVERNIGHT LIMIT:
+      - Overnight and Staycation bookings can be selected for multiple consecutive dates up to a MAXIMUM of 3 Days & 2 Nights (2 nights total).
+
+   D) EVENTS BOOKING:
+      - Birthdays, family reunions, and corporate team-building events are available with custom quotes.
+
+2. HOUSE RULES & POLICIES:
+   - Karaoke & Quiet Hours: Karaoke ends strictly at 10:00 PM. Keep noise reasonable afterward.
+   - Swimming Pool: Proper swim attire required. No food, drinks, glassware, or pets in the pool. Supervise children at all times.
+   - Food & Kitchen: Outside food/drinks allowed with NO corkage fee. Clean-As-You-Go (CLAYGO) and turn off LPG after cooking.
+   - Smoking & Pets: Strictly no smoking inside air-conditioned rooms. Well-behaved pets are welcome on the grounds (keep off beds and out of the pool).
+   - Payment, Cancellation & Rescheduling: 50% down payment (DP) is required to secure a booking; remaining 50% balance is paid upon arrival before room use. Down payment is non-refundable for guest-initiated cancellations or no-shows. One reschedule is allowed if requested at least 7 days before check-in (subject to availability).
+
+3. LOCATION & HOW TO BOOK:
+   - Location: Near Angat River and Beltran Street (searchable on Google Maps & Waze as "The Forts Riverside Private Resort").
+   - How to Book: Use the 3-Step Rate Calculator on the website to compute the exact rate, then click "Reserve Selected Dates" or submit via the official Google Form: https://forms.gle/STv73fxDoKJxDC4A7 or message on Facebook/Instagram.
+`;
+
+const QUICK_CHAT_QUESTIONS = [
+  'Staycation room rates?',
+  'What is included in Staycation?',
+  'Exclusive resort packages?',
+  'Payment & cancellation rules?'
+];
+
+// Local fallback responder in case the Gemini API key is not added yet
+function getLocalFallbackAnswer(userText) {
+  const q = userText.toLowerCase();
+
+  if (q.includes('staycation') || q.includes('room') || q.includes('vista') || q.includes('cozy') || q.includes('hideout') || q.includes('loft')) {
+    return `Here are our 22-Hour Room-Only Staycation rates (2:00 PM – 12:00 NN):\n• THE COZY DEN (2–4 pax): ₱2,000 Weekday | ₱2,500 Wknd/Hol\n• THE VISTA (2–4 pax): ₱2,800 Weekday | ₱3,300 Wknd/Hol\n• THE HIDEOUT (4–6 pax): ₱3,000 Weekday | ₱3,500 Wknd/Hol\n• THE RIVER LOFT (10–15 pax): ₱5,000 Weekday | ₱6,000 Wknd/Hol\n\nAll staycations include free Silog breakfast per registered guest, pool access, kitchen & free LPG use, Wi-Fi, parking, and karaoke until 10 PM!`;
+  }
+  if (q.includes('inclusion') || q.includes('include') || q.includes('breakfast') || q.includes('gas') || q.includes('lpg')) {
+    return `Room-Only Staycations include:\n• 22-hour A/C room stay (2PM–12NN)\n• Free Silog breakfast for each registered guest\n• Swimming pool & riverside access\n• Kitchen access + FREE LPG cooking use\n• Wi-Fi, gated parking & karaoke (until 10 PM).\n\nFor Exclusive Resort Bookings, LPG use is an optional +₱400 add-on.`;
+  }
+  if (q.includes('exclusive') || q.includes('day tour') || q.includes('night tour') || q.includes('whole resort') || q.includes('package')) {
+    return `Our Exclusive Resort Packages (Mon–Thu / Fri–Sun & Hol):\n• Day Tour (8AM–5PM, 15 pax): ₱4,500 / ₱5,000\n• Night Tour (7PM–6AM, 15 pax): ₱6,999 / ₱7,500\n• Family Overnight (4–8 pax): ₱7,999 / ₱8,999\n• Barkada Overnight (9–15 pax): ₱10,999 / ₱11,999\n• Mid Group (16–20 pax): ₱13,999 / ₱14,999\n• Whole Resort (Up to 30 pax, all 4 rooms): ₱15,999 / ₱16,499`;
+  }
+  if (q.includes('extra') || q.includes('excess') || q.includes('mattress')) {
+    return `Extra Guest & Mattress Rates:\n• Staycation Extra Guest: ₱300/person per stay (includes pool access & Silog breakfast)\n• Extra Single Mattress: ₱150/night\n• Extra Double Mattress: ₱200/night\n• Resort Day Tour Excess: ₱150/head (Night/Overnight: ₱200/head)`;
+  }
+  if (q.includes('pay') || q.includes('down') || q.includes('cancel') || q.includes('resched') || q.includes('rule') || q.includes('policy')) {
+    return `Booking & House Policies:\n• 50% down payment is required to lock in your dates; 50% balance is paid upon arrival.\n• Down payments are non-refundable for cancellations/no-shows.\n• 1 reschedule is allowed if requested at least 7 days before check-in.\n• Karaoke is until 10:00 PM, no smoking inside rooms, and no corkage fee on food!`;
+  }
+  if (q.includes('book') || q.includes('reserve') || q.includes('location') || q.includes('where')) {
+    return `We are located beside the scenic Angat River near Beltran Street (search "The Forts Riverside Private Resort" on Google Maps/Waze).\n\nTo book, select your dates in our 3-Step Rate Calculator on this page and click "Reserve Selected Dates", or fill out our Google Form: https://forms.gle/STv73fxDoKJxDC4A7`;
+  }
+
+  return `Hi! I can help you with Staycation Room rates (₱2,000–₱6,000 with free Silog breakfast & LPG), Exclusive Resort Packages (₱4,500–₱16,499), check-in times, extra mattresses, or booking policies. What would you like to know?`;
+}
+
+function FortsAIChatbot() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages] = useState([
+    {
+      role: 'assistant',
+      text: 'Hello! 👋 Welcome to The Forts Riverside Private Resort. Ask me anything about our Staycation Rooms, Exclusive Packages, inclusions, or house rules!'
+    }
+  ]);
+
+  // Reads your Gemini API Key from your .env file (VITE_GEMINI_API_KEY)
+  const GEMINI_API_KEY = import.meta.env?.VITE_GEMINI_API_KEY || '';
+
+  const sendMessage = async (customQuestion = null) => {
+    const textToSend = (customQuestion ?? input).trim();
+    if (!textToSend || isLoading) return;
+
+    const updatedMessages = [...messages, { role: 'user', text: textToSend }];
+    setMessages(updatedMessages);
+    if (!customQuestion) setInput('');
+    setIsLoading(true);
+
+    try {
+      // If no API key is configured yet, use the built-in local fallback
+      if (!GEMINI_API_KEY) {
+        await new Promise((r) => setTimeout(r, 450));
+        setMessages((prev) => [
+          ...prev,
+          { role: 'assistant', text: getLocalFallbackAnswer(textToSend) }
+        ]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Format conversation history for Gemini API
+      const contents = updatedMessages.map((msg) => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.text }]
+      }));
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [{ text: RESORT_SYSTEM_PROMPT }]
+            },
+            contents
+          })
+        }
+      );
+
+      const data = await response.json();
+      const aiReply =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        getLocalFallbackAnswer(textToSend);
+
+      setMessages((prev) => [...prev, { role: 'assistant', text: aiReply }]);
+    } catch (error) {
+      // Fallback gracefully if offline or quota exceeded
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', text: getLocalFallbackAnswer(textToSend) }
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed bottom-5 right-5 z-50">
+      {/* Chat Window */}
+      {isOpen ? (
+        <div className="w-[340px] sm:w-[380px] h-[510px] bg-white rounded-3xl border border-[#E6DBC8] shadow-2xl flex flex-col overflow-hidden">
+          {/* Header */}
+          <div className="p-4 bg-[#0B3553] text-white border-b-2 border-[#C8AD7F] flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-full bg-[#F5EFE6] text-[#0B3553] flex items-center justify-center font-bold shadow-xs">
+                <Bot className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold leading-tight">The Forts AI Concierge</h4>
+                <span className="text-[11px] text-[#E6DBC8] flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  Instant Resort Support
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+              aria-label="Close Chat"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Messages List */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#FAF8F5]">
+            {messages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm whitespace-pre-line leading-relaxed ${
+                    msg.role === 'user'
+                      ? 'bg-[#0B3553] text-white rounded-br-xs shadow-2xs'
+                      : 'bg-white text-slate-800 border border-[#E6DBC8] rounded-bl-xs shadow-2xs'
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-white border border-[#E6DBC8] text-slate-500 rounded-2xl rounded-bl-xs px-3.5 py-2 text-xs italic">
+                  Typing a reply...
+                </div>
+              </div>
+            )}
+
+            {/* Quick Question Chips */}
+            <div className="pt-2 flex flex-wrap gap-1.5">
+              {QUICK_CHAT_QUESTIONS.map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => sendMessage(q)}
+                  className="text-[11px] font-semibold bg-[#F5EFE6] hover:bg-[#ebe1d1] text-[#0B3553] border border-[#E6DBC8] px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Input Box */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              sendMessage();
+            }}
+            className="p-3 bg-white border-t border-[#E6DBC8] flex items-center gap-2"
+          >
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask about rooms, rates, or rules..."
+              className="flex-1 text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#0B3553]"
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || isLoading}
+              className="p-2.5 rounded-xl bg-[#0B3553] hover:bg-[#16486B] disabled:bg-slate-200 text-white transition-colors cursor-pointer"
+              aria-label="Send Message"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </form>
+        </div>
+      ) : (
+        /* Floating Launcher Button */
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="flex items-center gap-2.5 bg-[#0B3553] hover:bg-[#16486B] text-white font-bold text-xs sm:text-sm px-4 py-3.5 rounded-full shadow-xl border-2 border-[#C8AD7F] transition-transform hover:scale-105 cursor-pointer"
+        >
+          <MessageCircle className="w-5 h-5 text-[#F5EFE6]" />
+          <span>Ask AI Concierge</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
 // 10. MAIN APPLICATION COMPONENT
 // ============================================================================
 
@@ -1621,8 +1885,8 @@ export default function App() {
   const renderCleanMonthGrid = (cells) => {
     return (
       <div>
-        {/* Weekday Headers (Monday-first like the screenshot: Mo Tu We Th Fr Sa Su) */}
-        <div className="grid grid-cols-7 text-center text-[11px] font-medium text-neutral-400 pb-3">
+        {/* Weekday Headers */}
+        <div className="grid grid-cols-7 text-center text-[11px] font-bold text-slate-400 pb-3">
           <div>Mo</div>
           <div>Tu</div>
           <div>We</div>
@@ -1632,7 +1896,7 @@ export default function App() {
           <div>Su</div>
         </div>
 
-        {/* Days Grid (No prices inside!) */}
+        {/* Days Grid (Updated to Blue/Beige Theme) */}
         <div className="grid grid-cols-7 gap-y-1.5">
           {cells.map((dayItem, index) => {
             if (!dayItem) {
@@ -1653,10 +1917,10 @@ export default function App() {
                 key={dayItem.dateKey}
                 className="relative h-10 sm:h-11 flex items-center justify-center"
               >
-                {/* Continuous Light-Gray Pill Background Strip Connecting Start, Middle & End (Exact Screenshot Style) */}
+                {/* Continuous Blue/Beige Highlight Strip */}
                 {isSelected && !isSingleSelection && (
                   <div
-                    className={`absolute inset-y-0.5 bg-neutral-100 ${
+                    className={`absolute inset-y-0.5 bg-[#F5EFE6] ${
                       isStart
                         ? 'left-1/2 right-0'
                         : isEnd
@@ -1677,12 +1941,12 @@ export default function App() {
                   }
                   className={`relative z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm transition-all select-none ${
                     dayItem.isPast
-                      ? 'text-neutral-300 line-through cursor-not-allowed font-normal'
+                      ? 'text-slate-300 line-through cursor-not-allowed font-normal'
                       : isStart || isEnd
-                      ? 'bg-neutral-900 text-white font-bold shadow-xs cursor-pointer scale-[1.03]'
+                      ? 'bg-[#0B3553] text-white font-bold shadow-md ring-2 ring-[#C8AD7F] cursor-pointer scale-[1.03]'
                       : isMiddle
-                      ? 'bg-neutral-100 text-neutral-900 font-bold cursor-pointer'
-                      : 'hover:border hover:border-neutral-900 text-neutral-800 font-semibold cursor-pointer'
+                      ? 'bg-[#0B3553]/15 text-[#0B3553] font-bold cursor-pointer'
+                      : 'hover:border hover:border-[#0B3553] text-slate-700 font-semibold cursor-pointer'
                   }`}
                 >
                   {dayItem.day}
@@ -1749,15 +2013,8 @@ export default function App() {
             <a href="#home" className="hover:text-[#0B3553] transition-colors">
               Home
             </a>
-            <a
-              href="#booking-calendar"
-              className="text-[#0B3553] font-bold flex items-center gap-1.5 bg-[#F5EFE6] px-3.5 py-1.5 rounded-full border border-[#E6DBC8] hover:bg-[#ebe1d1] transition-colors"
-            >
-              <CalendarIcon className="w-4 h-4 text-[#0B3553]" />
-              Rate Calculator
-            </a>
             <a href="#rooms" className="hover:text-[#0B3553] transition-colors">
-              Staycation Rooms
+              Rooms
             </a>
             <a href="#packages" className="hover:text-[#0B3553] transition-colors">
               Packages & Rates
@@ -1767,12 +2024,6 @@ export default function App() {
             </a>
             <a href="#rules" className="hover:text-[#0B3553] transition-colors">
               Policies & Rules
-            </a>
-            <a href="#reviews" className="hover:text-[#0B3553] transition-colors">
-              Reviews
-            </a>
-            <a href="#faqs" className="hover:text-[#0B3553] transition-colors">
-              FAQs
             </a>
           </nav>
 
@@ -1899,68 +2150,25 @@ export default function App() {
                   className="inline-flex items-center gap-2.5 bg-[#F5EFE6] hover:bg-white text-[#0B3553] font-bold px-6 py-4 rounded-xl shadow-lg transition-all cursor-pointer text-sm sm:text-base"
                 >
                   <CalendarIcon className="w-5 h-5 text-[#0B3553]" />
-                  Open Calendar & Rate Calculator
+                  See Availability
                 </a>
                 <a
                   href="#rooms"
                   className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-4 rounded-xl border border-white/25 backdrop-blur-xs transition-all text-sm sm:text-base"
                 >
                   <BedDouble className="w-4 h-4 text-[#E6DBC8]" />
-                  Explore Staycation Rooms
+                  Explore our Rooms
                 </a>
               </div>
             </div>
           </div>
 
-          {/* Quick Highlights Strip */}
-          <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4 pt-8 border-t border-white/15">
-            <div
-              onClick={() => handleSelectPackage('staycation-cozy-den', true)}
-              className="p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 cursor-pointer transition-colors"
-            >
-              <p className="text-2xl sm:text-3xl font-brand-serif font-bold text-[#F5EFE6]">
-                ₱2,000
-              </p>
-              <p className="text-xs text-slate-200 mt-0.5">
-                The Cozy Den (2–4 Pax w/ Breakfast) →
-              </p>
-            </div>
-            <div
-              onClick={() => handleSelectPackage('staycation-vista', true)}
-              className="p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 cursor-pointer transition-colors"
-            >
-              <p className="text-2xl sm:text-3xl font-brand-serif font-bold text-white">₱2,800</p>
-              <p className="text-xs text-slate-200 mt-0.5">
-                The Vista Overlooking Room (2–4 Pax) →
-              </p>
-            </div>
-            <div
-              onClick={() => handleSelectPackage('staycation-hideout', true)}
-              className="p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 cursor-pointer transition-colors"
-            >
-              <p className="text-2xl sm:text-3xl font-brand-serif font-bold text-[#F5EFE6]">
-                ₱3,000
-              </p>
-              <p className="text-xs text-slate-200 mt-0.5">
-                The Hideout Small Barkada (4–6 Pax) →
-              </p>
-            </div>
-            <div
-              onClick={() => handleSelectPackage('staycation-river-loft', true)}
-              className="p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 cursor-pointer transition-colors"
-            >
-              <p className="text-2xl sm:text-3xl font-brand-serif font-bold text-white">₱5,000</p>
-              <p className="text-xs text-slate-200 mt-0.5">
-                The River Loft Barkada (10–15 Pax) →
-              </p>
-            </div>
-          </div>
+          
         </div>
       </section>
 
       {/* ==========================================
-          COMPACT RETRACTABLE 3-STEP WIZARD
-          + SCREENSHOT-STYLE 2-MONTH CALENDAR + RATE CALCULATOR
+          2-MONTH CALENDAR + RATE CALCULATOR
       ========================================== */}
       <section id="booking-calendar" className="py-14 sm:py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1973,8 +2181,7 @@ export default function App() {
               Select Your Stay & Calculate Your Rate
             </h2>
             <p className="mt-2 text-slate-600 text-sm sm:text-base">
-              Completed steps automatically retract into minimal icon buttons so you can focus on
-              your dates and rate calculation without visual clutter.
+              View your all-in price rates and availability with your preffered booking dates!
             </p>
           </div>
 
@@ -2073,7 +2280,7 @@ export default function App() {
                 className="text-xs font-semibold text-slate-500 hover:text-[#0B3553] flex items-center gap-1 ml-auto cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Expand Descriptions</span>
+                <span className="hidden md:inline">Reset</span>
               </button>
             </div>
           )}
@@ -2092,7 +2299,7 @@ export default function App() {
                     Step 1: Choose Your Booking Category
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Click an option below—Step 1 will retract into 3 icon buttons once you select.
+                    Click an option below.
                   </p>
                 </div>
               </div>
@@ -2190,8 +2397,7 @@ export default function App() {
                       {activeBookingTypeObj.selectionPrompt}
                     </h3>
                     <p className="text-xs text-slate-600">
-                      Select an option below—Step 2 will retract into compact icons and open the
-                      Calendar & Rate Calculator.
+                      Select an option below.
                     </p>
                   </div>
                 </div>
@@ -2278,19 +2484,17 @@ export default function App() {
           )}
 
           {/* ==========================================
-              STEP 3: SCREENSHOT-STYLE 2-MONTH CALENDAR + RATE CALCULATOR
+              STEP 3: 2-MONTH CALENDAR + RATE CALCULATOR
               (SHOWN WHEN activeWizardStep === 3)
           ========================================== */}
           {activeWizardStep === 3 && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               {/* LEFT 7 COLUMNS: AIRBNB SCREENSHOT-STYLE 2-MONTH CALENDAR CARD */}
-              <div className="lg:col-span-7 bg-white rounded-3xl border border-neutral-200 shadow-lg p-6 sm:p-8">
-                {/* Top Header Matching Reference Screenshot:
-                    Left: "2 nights" + Date Range
-                    Right: Twin CHECK-IN / CHECK-OUT Box with "×" buttons */}
+              <div className="lg:col-span-7 bg-white rounded-3xl border border-[#E6DBC8] shadow-sm p-6 sm:p-8">
+                {/* Top Header Matching Reference Screenshot */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6">
                   <div>
-                    <h3 className="text-2xl sm:text-[26px] font-bold text-neutral-900 tracking-tight leading-tight">
+                    <h3 className="text-2xl sm:text-[26px] font-bold text-[#0B3553] tracking-tight leading-tight">
                       {!selectedDates.length
                         ? 'Select dates'
                         : selectedPackage.isOvernightMultiDay
@@ -2299,26 +2503,24 @@ export default function App() {
                           }`
                         : selectedPackage.shortName}
                     </h3>
-                    <p className="text-sm text-neutral-500 mt-1">
+                    <p className="text-sm text-slate-500 mt-1">
                       {!selectedDates.length
                         ? 'Add your travel dates for exact pricing'
                         : selectedPackage.isOvernightMultiDay
-                        ? `${formatReadableDate(checkInDateKey)} - ${formatReadableDate(
-                            checkOutDateKey
-                          )}`
+                        ? `${formatReadableDate(checkInDateKey)} - ${formatReadableDate(checkOutDateKey)}`
                         : `${formatReadableDate(checkInDateKey)} (${selectedPackage.timeLabel})`}
                     </p>
                   </div>
 
-                  {/* Twin Bordered CHECK-IN / CHECK-OUT Input Boxes from Reference Picture */}
-                  <div className="grid grid-cols-2 border border-neutral-400 rounded-xl overflow-hidden bg-white shrink-0 min-w-[270px] sm:min-w-[300px]">
+                  {/* Twin Bordered CHECK-IN / CHECK-OUT Input Boxes */}
+                  <div className="grid grid-cols-2 border border-[#E6DBC8] rounded-xl overflow-hidden bg-white shrink-0 min-w-[270px] sm:min-w-[300px]">
                     {/* CHECK-IN BOX */}
-                    <div className="p-2.5 pl-3.5 border-2 border-neutral-900 rounded-xl flex items-center justify-between">
+                    <div className="p-2.5 pl-3.5 border-2 border-[#0B3553] rounded-xl flex items-center justify-between">
                       <div>
-                        <span className="block text-[9px] font-extrabold uppercase tracking-wider text-neutral-900">
+                        <span className="block text-[9px] font-extrabold uppercase tracking-wider text-[#0B3553]">
                           CHECK-IN
                         </span>
-                        <span className="text-xs sm:text-sm font-medium text-neutral-900">
+                        <span className="text-xs sm:text-sm font-bold text-[#0B3553]">
                           {checkInDateKey ? formatSlashDate(checkInDateKey) : 'Add date'}
                         </span>
                       </div>
@@ -2326,7 +2528,7 @@ export default function App() {
                         <button
                           type="button"
                           onClick={handleClearDates}
-                          className="p-1 text-neutral-500 hover:text-neutral-900 cursor-pointer"
+                          className="p-1 text-slate-400 hover:text-[#0B3553] cursor-pointer"
                           aria-label="Clear Check-in"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -2337,10 +2539,10 @@ export default function App() {
                     {/* CHECK-OUT BOX */}
                     <div className="p-2.5 pl-3.5 flex items-center justify-between">
                       <div>
-                        <span className="block text-[9px] font-extrabold uppercase tracking-wider text-neutral-700">
+                        <span className="block text-[9px] font-extrabold uppercase tracking-wider text-slate-500">
                           CHECK-OUT
                         </span>
-                        <span className="text-xs sm:text-sm font-medium text-neutral-800">
+                        <span className="text-xs sm:text-sm font-semibold text-slate-700">
                           {checkOutDateKey ? formatSlashDate(checkOutDateKey) : 'Add date'}
                         </span>
                       </div>
@@ -2348,7 +2550,7 @@ export default function App() {
                         <button
                           type="button"
                           onClick={handleClearDates}
-                          className="p-1 text-neutral-500 hover:text-neutral-900 cursor-pointer"
+                          className="p-1 text-slate-400 hover:text-[#0B3553] cursor-pointer"
                           aria-label="Clear Check-out"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -2375,7 +2577,7 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Two-Month Side-by-Side Calendar View Matching Screenshot */}
+                {/* Two-Month Side-by-Side Calendar View */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
                   {/* MONTH 1 */}
                   <div>
@@ -2383,19 +2585,19 @@ export default function App() {
                       <button
                         type="button"
                         onClick={goToPreviousMonth}
-                        className="p-1.5 rounded-full hover:bg-neutral-100 text-neutral-700 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-full hover:bg-[#F5EFE6] text-[#0B3553] transition-colors cursor-pointer"
                         aria-label="Previous Month"
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </button>
-                      <h4 className="text-sm sm:text-base font-bold text-neutral-900">
+                      <h4 className="text-sm sm:text-base font-bold text-[#0B3553]">
                         {monthNames[currentMonth]} {currentYear}
                       </h4>
                       <div className="w-7 md:hidden">
                         <button
                           type="button"
                           onClick={goToNextMonth}
-                          className="p-1.5 rounded-full hover:bg-neutral-100 text-neutral-700 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-full hover:bg-[#F5EFE6] text-[#0B3553] transition-colors cursor-pointer"
                           aria-label="Next Month"
                         >
                           <ChevronRight className="w-4 h-4" />
@@ -2410,13 +2612,13 @@ export default function App() {
                   <div className="hidden md:block">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-7" />
-                      <h4 className="text-sm sm:text-base font-bold text-neutral-900">
+                      <h4 className="text-sm sm:text-base font-bold text-[#0B3553]">
                         {monthNames[secondMonthYear.month]} {secondMonthYear.year}
                       </h4>
                       <button
                         type="button"
                         onClick={goToNextMonth}
-                        className="p-1.5 rounded-full hover:bg-neutral-100 text-neutral-700 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-full hover:bg-[#F5EFE6] text-[#0B3553] transition-colors cursor-pointer"
                         aria-label="Next Month"
                       >
                         <ChevronRight className="w-4 h-4" />
@@ -2426,10 +2628,10 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Bottom Bar Matching Screenshot: Keyboard Icon on Left, "Clear dates" + Dark Pill Button on Right */}
-                <div className="mt-6 pt-4 border-t border-neutral-100 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 text-xs text-neutral-500">
-                    <Keyboard className="w-4 h-4 text-neutral-500" />
+                {/* Bottom Bar: Keyboard Icon + Clear / Done Buttons */}
+                <div className="mt-6 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <Keyboard className="w-4 h-4 text-slate-400" />
                     <span>
                       {selectedPackage.isOvernightMultiDay
                         ? 'Select up to 3 Days & 2 Nights (Max 2 nights)'
@@ -2441,7 +2643,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={handleClearDates}
-                      className="text-xs sm:text-sm font-semibold text-neutral-800 underline hover:text-black cursor-pointer"
+                      className="text-xs sm:text-sm font-bold text-[#0B3553] underline hover:text-[#1D5B8C] cursor-pointer"
                     >
                       Clear dates
                     </button>
@@ -2455,7 +2657,7 @@ export default function App() {
                           ]);
                         }
                       }}
-                      className="px-5 py-2.5 rounded-full bg-neutral-900 hover:bg-black text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+                      className="px-5 py-2.5 rounded-full bg-[#0B3553] hover:bg-[#16486B] text-white text-xs sm:text-sm font-bold transition-colors cursor-pointer"
                     >
                       {selectedPackage.isOvernightMultiDay && selectedDates.length === 1
                         ? 'Select Check-Out'
@@ -2486,7 +2688,7 @@ export default function App() {
                 </div>
 
                 <div className="p-5 sm:p-6 space-y-4">
-                  {/* Weekend/Holiday Staycation Advance Booking Policy Note from PDF Page 7 */}
+                  {/* Weekend/Holiday Staycation Advance Booking Policy Note */}
                   {priceBreakdown.hasWeekendStaycationWarning && (
                     <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5">
                       <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
@@ -2574,11 +2776,8 @@ export default function App() {
                               Total Registered Guests
                             </label>
                             <p className="text-xs text-slate-500">
-                              Base: {selectedPackage.paxLabel} • Extra guest:{' '}
-                              {formatPHP(selectedPackage.excessFeePerHead)}
-                              {selectedPackage.category === 'staycation'
-                                ? '/person (w/ pool & Silog breakfast)'
-                                : '/head'}
+                              Base: {selectedPackage.paxLabel} 
+          
                             </p>
                           </div>
 
@@ -2613,9 +2812,7 @@ export default function App() {
                                 <span className="text-xs sm:text-sm font-bold text-[#0B3553]">
                                   Extra Single Mattress (+₱150/night)
                                 </span>
-                                <p className="text-[11px] text-slate-500">
-                                  Subject to availability (request in advance)
-                                </p>
+                                
                               </div>
                               <div className="flex items-center gap-2">
                                 <button
@@ -2828,15 +3025,13 @@ export default function App() {
           <div className="text-center max-w-3xl mx-auto mb-12">
             <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.18em] text-[#0B3553] bg-[#F5EFE6] border border-[#E6DBC8] px-3.5 py-1.5 rounded-full mb-3">
               <BedDouble className="w-3.5 h-3.5 text-[#0B3553]" />
-              22-Hour Room-Only Staycation Bookings
+              Explore your Accomodations
             </span>
             <h2 className="text-3xl sm:text-5xl font-brand-serif font-bold text-[#0B3553]">
-              Our 4 Air-Conditioned Staycation Rooms
+              Our 4 Relaxing Rooms
             </h2>
             <p className="mt-3 text-slate-600 text-sm sm:text-base">
-              Every 22-hour room-only staycation (2:00 PM check-in to 12:00 NN check-out) includes{' '}
-              <strong>Silog breakfast for each registered guest</strong>, swimming pool access,
-              kitchen &amp; LPG use, riverside access, Wi-Fi, parking, and karaoke!
+              Your comfort is our priority.
             </p>
           </div>
 
@@ -2862,10 +3057,6 @@ export default function App() {
                       <Coffee className="w-3.5 h-3.5 text-[#8A6D3B]" />
                       Free Silog Breakfast
                     </span>
-                  </div>
-                  <div className="absolute bottom-4 right-4 bg-[#0B3553]/95 text-white border border-[#C8AD7F] font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl shadow">
-                    Weekday: <span className="text-[#F5EFE6] font-extrabold">{formatPHP(room.weekdayRate)}</span>{' '}
-                    • Wknd/Hol: <span className="text-[#C8AD7F] font-extrabold">{formatPHP(room.weekendRate)}</span>
                   </div>
                 </div>
 
@@ -2918,14 +3109,6 @@ export default function App() {
 
                   <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
                     <span className="text-[11px] text-slate-500">{room.extraMattressNote}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleSelectPackage(room.packageId, true)}
-                      className="shrink-0 py-2.5 px-4 rounded-xl bg-[#0B3553] hover:bg-[#16486B] text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
-                    >
-                      <CalendarIcon className="w-3.5 h-3.5 text-[#F5EFE6]" />
-                      Calculate Staycation Rate
-                    </button>
                   </div>
                 </div>
               </div>
@@ -3425,15 +3608,6 @@ export default function App() {
                   Open in Google Maps
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
-                <a
-                  href="https://forms.gle/STv73fxDoKJxDC4A7"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 bg-[#F5EFE6] hover:bg-[#ebe1d1] text-[#0B3553] border border-[#E6DBC8] text-xs sm:text-sm font-bold px-5 py-3 rounded-xl transition-colors"
-                >
-                  Official Booking Form
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
               </div>
             </div>
 
@@ -3704,6 +3878,8 @@ export default function App() {
           </div>
         </div>
       )}
+      {/* AI CHAT SUPPORT WIDGET */}
+      <FortsAIChatbot />
     </div>
   );
 }
