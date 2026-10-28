@@ -111,19 +111,45 @@ function SmartResortImage({ localSrc, fallbackSrc, alt, className }) {
 function getLocalFallbackAnswer(userText) {
   const q = userText.toLowerCase();
 
-  if (q.includes('staycation') || q.includes('room') || q.includes('vista') || q.includes('cozy') || q.includes('hideout') || q.includes('loft')) {
+  if (
+    q.includes('staycation') ||
+    q.includes('room') ||
+    q.includes('vista') ||
+    q.includes('cozy') ||
+    q.includes('hideout') ||
+    q.includes('loft')
+  ) {
     return `Here are our 22-Hour Room-Only Staycation rates (2:00 PM – 12:00 NN):\n• THE COZY DEN (2–4 pax): ₱2,000 Weekday | ₱2,500 Wknd/Hol\n• THE VISTA (2–4 pax): ₱2,800 Weekday | ₱3,300 Wknd/Hol\n• THE HIDEOUT (4–6 pax): ₱3,000 Weekday | ₱3,500 Wknd/Hol\n• THE RIVER LOFT (10–15 pax): ₱5,000 Weekday | ₱6,000 Wknd/Hol\n\nAll staycations include free Silog breakfast per registered guest, pool access, kitchen & free LPG use, Wi-Fi, parking, and karaoke until 10 PM!`;
   }
-  if (q.includes('inclusion') || q.includes('include') || q.includes('breakfast') || q.includes('gas') || q.includes('lpg')) {
+  if (
+    q.includes('inclusion') ||
+    q.includes('include') ||
+    q.includes('breakfast') ||
+    q.includes('gas') ||
+    q.includes('lpg')
+  ) {
     return `Room-Only Staycations include:\n• 22-hour A/C room stay (2PM–12NN)\n• Free Silog breakfast for each registered guest\n• Swimming pool & riverside access\n• Kitchen access + FREE LPG cooking use\n• Wi-Fi, gated parking & karaoke (until 10 PM).\n\nFor Exclusive Resort Bookings, LPG use is an optional +₱400 add-on.`;
   }
-  if (q.includes('exclusive') || q.includes('day tour') || q.includes('night tour') || q.includes('whole resort') || q.includes('package')) {
+  if (
+    q.includes('exclusive') ||
+    q.includes('day tour') ||
+    q.includes('night tour') ||
+    q.includes('whole resort') ||
+    q.includes('package')
+  ) {
     return `Our Exclusive Resort Packages (Mon–Thu / Fri–Sun & Hol):\n• Day Tour (8AM–5PM, 15 pax): ₱4,500 / ₱5,000\n• Night Tour (7PM–6AM, 15 pax): ₱6,999 / ₱7,500\n• Family Overnight (4–8 pax): ₱7,999 / ₱8,999\n• Barkada Overnight (9–15 pax): ₱10,999 / ₱11,999\n• Mid Group (16–20 pax): ₱13,999 / ₱14,999\n• Whole Resort (Up to 30 pax, all 4 rooms): ₱15,999 / ₱16,499`;
   }
   if (q.includes('extra') || q.includes('excess') || q.includes('mattress')) {
     return `Extra Guest & Mattress Rates:\n• Staycation Extra Guest: ₱300/person per stay (includes pool access & Silog breakfast)\n• Extra Single Mattress: ₱150/night\n• Extra Double Mattress: ₱200/night\n• Resort Day Tour Excess: ₱150/head (Night/Overnight: ₱200/head)`;
   }
-  if (q.includes('pay') || q.includes('down') || q.includes('cancel') || q.includes('resched') || q.includes('rule') || q.includes('policy')) {
+  if (
+    q.includes('pay') ||
+    q.includes('down') ||
+    q.includes('cancel') ||
+    q.includes('resched') ||
+    q.includes('rule') ||
+    q.includes('policy')
+  ) {
     return `Booking & House Policies:\n• 50% down payment is required to lock in your dates; 50% balance is paid upon arrival.\n• Down payments are non-refundable for cancellations/no-shows.\n• 1 reschedule is allowed if requested at least 7 days before check-in.\n• Karaoke is until 10:00 PM, no smoking inside rooms, and no corkage fee on food!`;
   }
   if (q.includes('book') || q.includes('reserve') || q.includes('location') || q.includes('where')) {
@@ -185,8 +211,6 @@ function FortsAIChatbot() {
           )
           .map((m) => m.name);
 
-        console.log('Available Gemini Text Models for your key:', availableModels);
-
         const preferredOrder = [
           'models/gemini-3.5-flash-lite',
           'models/gemini-3.1-flash-lite',
@@ -203,8 +227,6 @@ function FortsAIChatbot() {
 
         if (matched) targetModel = matched;
       }
-
-      console.log('Using Gemini Model:', targetModel);
 
       const contents = updatedMessages.map((msg) => ({
         role: msg.role === 'assistant' ? 'model' : 'user',
@@ -235,7 +257,6 @@ function FortsAIChatbot() {
       clearTimeout(timeoutId);
 
       const data = await response.json();
-      console.log('Gemini API Response:', response.status, data);
 
       if (!response.ok) {
         throw new Error(
@@ -365,7 +386,7 @@ function FortsAIChatbot() {
 }
 
 // ============================================================================
-// 10. MAIN APPLICATION COMPONENT
+// MAIN APPLICATION COMPONENT
 // ============================================================================
 
 export default function App() {
@@ -380,7 +401,7 @@ export default function App() {
   const [guestEmail, setGuestEmail] = useState('');
   const [paymentRef, setPaymentRef] = useState('');
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
-  const [bookingSubmitResult, setBookingSubmitResult] = useState(null); // { status: 'success'|'error', bookingId, message }
+  const [bookingSubmitResult, setBookingSubmitResult] = useState(null);
 
   // Fetch live availability from Google Sheets
   const fetchSheetAvailability = async () => {
@@ -414,7 +435,6 @@ export default function App() {
     setIsSubmittingBooking(true);
     setBookingSubmitResult(null);
 
-    // Occupied nights for overnight stays = all nights from check-in up to check-out minus 1 day
     const occupiedDates = selectedPackage.isOvernightMultiDay
       ? priceBreakdown.nightlyDetails.map((n) => n.dateKey)
       : [checkInDateKey];
@@ -446,7 +466,6 @@ export default function App() {
     try {
       const response = await fetch(BOOKING_SCRIPT_URL, {
         method: 'POST',
-        // text/plain avoids CORS preflight issues with Google Apps Script while still sending JSON
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
@@ -459,8 +478,7 @@ export default function App() {
           message:
             'Your reservation hold has been recorded! Please complete your 50% down payment within 24 hours.'
         });
-        setSelectedDates([]); // Unhighlights the dates just booked
-        // Immediately refresh calendar availability so dates cross out right away
+        setSelectedDates([]);
         fetchSheetAvailability();
       } else {
         setBookingSubmitResult({
@@ -478,24 +496,15 @@ export default function App() {
     }
   };
 
-  // Progressive Compact Step State:
-  // 1 = Only Step 1 expanded
-  // 2 = Step 1 retracts into 3 icon buttons; Step 2 expanded
-  // 3 = Step 1 & Step 2 retract into minimal icon bars; Step 3 (Calendar + Calculator) shown
   const [activeWizardStep, setActiveWizardStep] = useState(1);
 
-  // Calendar Base Month State (Displays 2 side-by-side months: currentMonth and currentMonth + 1)
   const today = useMemo(() => new Date(), []);
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
 
-  // STEP 1 State: 'staycation' | 'resort' | 'events'
   const [selectedBookingType, setSelectedBookingType] = useState('staycation');
-
-  // STEP 2 State: Selected Package / Room / Event Option
   const [selectedPackageId, setSelectedPackageId] = useState('staycation-vista');
 
-  // STEP 3 State: Selected Date(s) on Calendar (Max 3 days = 3 Days & 2 Nights)
   const initialStartKey = useMemo(() => {
     const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2);
     return toDateKey(d.getFullYear(), d.getMonth(), d.getDate());
@@ -508,7 +517,6 @@ export default function App() {
   const [dateLimitNotice, setDateLimitNotice] = useState('');
   const [customHolidays, setCustomHolidays] = useState({});
 
-  // Calculator Add-on & Inquiry States
   const [guestCount, setGuestCount] = useState(4);
   const [extraSingleMattresses, setExtraSingleMattresses] = useState(0);
   const [extraDoubleMattresses, setExtraDoubleMattresses] = useState(0);
@@ -521,7 +529,6 @@ export default function App() {
   const [guestContact, setGuestContact] = useState('');
   const [guestNotes, setGuestNotes] = useState('');
 
-  // Reservation Summary Modal & FAQ
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [copiedSuccess, setCopiedSuccess] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
@@ -541,7 +548,6 @@ export default function App() {
     [selectedPackageId, step2Options]
   );
 
-  // Ensure valid dates when switching between Single-Day Tour and Multi-Day Overnight
   const normalizeDatesForPackage = (pkg, currentDates) => {
     const baseStart = currentDates[0] || initialStartKey;
     if (!pkg.isOvernightMultiDay) {
@@ -553,7 +559,6 @@ export default function App() {
     return [baseStart, addDaysToKey(baseStart, 1)];
   };
 
-  // Step 1 Selection -> Retracts Step 1 into 3 Icon Buttons and opens Step 2
   const handleSelectBookingType = (typeId, scrollToStep = false) => {
     setSelectedBookingType(typeId);
     setDateLimitNotice('');
@@ -581,7 +586,6 @@ export default function App() {
     }
   };
 
-  // Step 2 Selection -> Retracts Step 2 into compact icon buttons and opens Step 3
   const handleSelectPackage = (pkgId, scrollToCal = false) => {
     const pkg = PACKAGES_DATA.find((p) => p.id === pkgId);
     if (!pkg) return;
@@ -609,7 +613,6 @@ export default function App() {
     }
   };
 
-  // Two side-by-side months (Month 1 & Month 2)
   const secondMonthYear = useMemo(() => {
     if (currentMonth === 11) {
       return { month: 0, year: currentYear + 1 };
@@ -617,20 +620,17 @@ export default function App() {
     return { month: currentMonth + 1, year: currentYear };
   }, [currentMonth, currentYear]);
 
-  // Checks if a dateKey is already Reserved or Booked for the currently selected package
   const getDateBookingStatus = (dateKey, pkg) => {
-    if (!sheetBookings || sheetBookings.length === 0) return { isBlocked: false, statusLabel: null };
-    
-    // Ensure the dateKey we are checking is trimmed
+    if (!sheetBookings || sheetBookings.length === 0) {
+      return { isBlocked: false, statusLabel: null };
+    }
+
     const cleanTargetDate = dateKey.trim();
 
     for (const b of sheetBookings) {
       if (b.status !== 'Reserved' && b.status !== 'Booked') continue;
-      
-      // Ensure the occupied array exists and safely check it
       if (!b.occupiedDates || !Array.isArray(b.occupiedDates)) continue;
-      
-      // Check if the current calendar cell (cleanTargetDate) is inside this booking's blocked dates
+
       const isDateBlocked = b.occupiedDates.some((d) => d.trim() === cleanTargetDate);
       if (!isDateBlocked) continue;
 
@@ -640,17 +640,14 @@ export default function App() {
       const isExistingExclusive = existingCategory === 'resort' || existingCategory === 'events';
       const isCurrentExclusive = currentCategory === 'resort' || currentCategory === 'events';
 
-      // Case 1: Existing booking is Exclusive Resort/Event -> Blocks ALL packages & rooms
       if (isExistingExclusive) {
         return { isBlocked: true, statusLabel: b.status };
       }
 
-      // Case 2: User wants Exclusive Resort/Event, but a Staycation room is already taken
       if (isCurrentExclusive) {
         return { isBlocked: true, statusLabel: b.status };
       }
 
-      // Case 3: Both are Staycation rooms -> Only block if it's the EXACT SAME room
       if (String(b.packageId).trim() === String(pkg.id).trim()) {
         return { isBlocked: true, statusLabel: b.status };
       }
@@ -690,7 +687,6 @@ export default function App() {
     [secondMonthYear, selectedPackage, customHolidays, today, sheetBookings]
   );
 
-  // Handle Date Click (Supports max 3 days = 3 Days & 2 Nights for overnight/staycation)
   const handleDayClick = (dayItem) => {
     if (!dayItem || dayItem.isPast) return;
 
@@ -701,18 +697,15 @@ export default function App() {
       return;
     }
 
-    // If 0 or >=2 dates are already selected, clicking a date starts a new Check-In selection
     if (selectedDates.length !== 1) {
       setSelectedDates([dayItem.dateKey]);
       return;
     }
 
-    // When 1 date (Check-In) is selected, the next click sets Check-Out (up to max 3 days / 2 nights)
     const startKey = selectedDates[0];
     const diff = diffDaysBetweenKeys(startKey, dayItem.dateKey);
 
     if (diff === 0) {
-      // Clicking the same date defaults to 2 Days & 1 Night
       setSelectedDates([startKey, addDaysToKey(startKey, 1)]);
       return;
     }
@@ -734,7 +727,6 @@ export default function App() {
       return;
     }
 
-    // If clicked an earlier date than startKey, make that the new Check-In date
     setSelectedDates([dayItem.dateKey]);
   };
 
@@ -743,7 +735,6 @@ export default function App() {
     setSelectedDates([]);
   };
 
-  // Automatically clears selectedDates if any selected night is already Reserved/Booked
   useEffect(() => {
     if (!sheetBookings.length || !selectedDates.length) return;
 
@@ -760,7 +751,6 @@ export default function App() {
     }
   }, [sheetBookings, selectedPackage, selectedDates]);
 
-  // Rate Calculator Computation (Updated to also check sheetBookings)
   const priceBreakdown = useMemo(() => {
     if (!selectedDates.length) {
       return {
@@ -809,13 +799,11 @@ export default function App() {
     const baseRate = nightlyDetails.reduce((sum, n) => sum + (n.rate || 0), 0);
     const excessGuests = Math.max(0, guestCount - selectedPackage.maxPax);
 
-    // PDF: Staycation extra guest is P300 per person per stay; Resort extra guest is per head
     const excessFee =
       selectedPackage.category === 'staycation'
         ? excessGuests * selectedPackage.excessFeePerHead
         : excessGuests * selectedPackage.excessFeePerHead * nightsCount;
 
-    // PDF: Extra single mattress = P150/night, Extra double mattress = P200/night
     const mattressFeePerNight = extraSingleMattresses * 150 + extraDoubleMattresses * 200;
     const mattressFee = mattressFeePerNight * nightsCount;
 
@@ -867,7 +855,6 @@ export default function App() {
     return addDaysToKey(selectedDates[0], 1);
   }, [selectedDates, selectedPackage]);
 
-  // Month Navigation
   const goToPreviousMonth = () => {
     if (currentMonth === 0) {
       setCurrentMonth(11);
@@ -886,7 +873,6 @@ export default function App() {
     }
   };
 
-  // Copy Booking Summary to Clipboard
   const generateSummaryText = () => {
     const bookingCategoryName = activeBookingTypeObj.title;
     const dateSummary = selectedPackage.isOvernightMultiDay
@@ -959,11 +945,9 @@ export default function App() {
     'December'
   ];
 
-  // Helper to render a single month grid matching the reference picture
   const renderCleanMonthGrid = (cells) => {
     return (
       <div>
-        {/* Weekday Headers */}
         <div className="grid grid-cols-7 text-center text-[11px] font-bold text-slate-400 pb-3">
           <div>Mo</div>
           <div>Tu</div>
@@ -974,7 +958,6 @@ export default function App() {
           <div>Su</div>
         </div>
 
-        {/* Days Grid (Updated to Blue/Beige Theme) */}
         <div className="grid grid-cols-7 gap-y-1.5">
           {cells.map((dayItem, index) => {
             if (!dayItem) {
@@ -995,7 +978,6 @@ export default function App() {
                 key={dayItem.dateKey}
                 className="relative h-10 sm:h-11 flex items-center justify-center"
               >
-                {/* Continuous Blue/Beige Highlight Strip */}
                 {isSelected && !isSingleSelection && (
                   <div
                     className={`absolute inset-y-0.5 bg-[#F5EFE6] ${
@@ -1046,7 +1028,6 @@ export default function App() {
       className="min-h-screen bg-white text-slate-800 selection:bg-[#0B3553] selection:text-white"
       style={{ fontFamily: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}
     >
-      {/* Google Fonts */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         .font-brand-serif {
@@ -1269,7 +1250,6 @@ export default function App() {
           ========================================== */}
           {activeWizardStep > 1 && (
             <div className="mb-6 bg-[#FAF8F5] border border-[#E6DBC8] rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
-              {/* Retracted Step 1: 3 Minimal Icon Buttons */}
               <div className="flex items-center gap-2.5 flex-wrap">
                 <button
                   type="button"
@@ -1311,7 +1291,6 @@ export default function App() {
                 </span>
               </div>
 
-              {/* Retracted Step 2: Minimal Icon Buttons (Visible when in Step 3) */}
               {activeWizardStep === 3 && (
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <button
@@ -1570,7 +1549,6 @@ export default function App() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               {/* LEFT 7 COLUMNS: AIRBNB SCREENSHOT-STYLE 2-MONTH CALENDAR CARD */}
               <div className="lg:col-span-7 bg-white rounded-3xl border border-[#E6DBC8] shadow-sm p-6 sm:p-8">
-                {/* Top Header Matching Reference Screenshot */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6">
                   <div>
                     <h3 className="text-2xl sm:text-[26px] font-bold text-[#0B3553] tracking-tight leading-tight">
@@ -1593,7 +1571,6 @@ export default function App() {
 
                   {/* Twin Bordered CHECK-IN / CHECK-OUT Input Boxes */}
                   <div className="grid grid-cols-2 border border-[#E6DBC8] rounded-xl overflow-hidden bg-white shrink-0 min-w-[270px] sm:min-w-[300px]">
-                    {/* CHECK-IN BOX */}
                     <div className="p-2.5 pl-3.5 border-2 border-[#0B3553] rounded-xl flex items-center justify-between">
                       <div>
                         <span className="block text-[9px] font-extrabold uppercase tracking-wider text-[#0B3553]">
@@ -1615,7 +1592,6 @@ export default function App() {
                       )}
                     </div>
 
-                    {/* CHECK-OUT BOX */}
                     <div className="p-2.5 pl-3.5 flex items-center justify-between">
                       <div>
                         <span className="block text-[9px] font-extrabold uppercase tracking-wider text-slate-500">
@@ -1639,7 +1615,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Notice Banner if User Tried to Select > 3 Days */}
                 {dateLimitNotice && (
                   <div className="mb-5 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
@@ -1658,7 +1633,6 @@ export default function App() {
 
                 {/* Two-Month Side-by-Side Calendar View */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
-                  {/* MONTH 1 */}
                   <div>
                     <div className="flex items-center justify-between mb-4">
                       <button
@@ -1687,7 +1661,6 @@ export default function App() {
                     {renderCleanMonthGrid(firstMonthCells)}
                   </div>
 
-                  {/* MONTH 2 */}
                   <div className="hidden md:block">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-7" />
@@ -1751,7 +1724,6 @@ export default function App() {
                 </div>
 
                 <div className="p-5 sm:p-6 space-y-4">
-                  {/* Weekend/Holiday Staycation Advance Booking Policy Note */}
                   {priceBreakdown.hasWeekendStaycationWarning && (
                     <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5">
                       <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
@@ -1767,7 +1739,6 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* IF EVENTS BOOKING */}
                   {selectedPackage.isEvent ? (
                     <div className="space-y-4">
                       <div>
@@ -1828,10 +1799,8 @@ export default function App() {
                       </div>
                     </div>
                   ) : (
-                    /* LIVE RATE CALCULATOR FOR STAYCATION & RESORT BOOKINGS */
                     <>
                       <div className="space-y-3.5">
-                        {/* Guest Counter */}
                         <div className="flex items-center justify-between">
                           <div>
                             <label className="text-sm font-bold text-[#0B3553] flex items-center gap-1.5">
@@ -1866,7 +1835,6 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Extra Mattresses (From PDF: Single P150/night, Double P200/night) */}
                         {selectedPackage.isOvernightMultiDay && (
                           <div className="pt-3 border-t border-[#E6DBC8]/70 space-y-2.5">
                             <div className="flex items-center justify-between">
@@ -1933,7 +1901,6 @@ export default function App() {
                           </div>
                         )}
 
-                        {/* Kitchen LPG / Gas Option */}
                         <div className="flex items-center justify-between pt-3 border-t border-[#E6DBC8]/70">
                           <div>
                             <span className="text-sm font-bold text-[#0B3553] flex items-center gap-1.5">
@@ -1967,7 +1934,6 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* Itemized Rate Calculator Breakdown Box */}
                       <div className="p-4 rounded-2xl bg-[#0B3553] text-white space-y-2">
                         <div className="flex items-center justify-between pb-1 border-b border-white/15">
                           <span className="text-xs font-bold uppercase tracking-wider text-[#E6DBC8]">
@@ -2053,7 +2019,6 @@ export default function App() {
                     </>
                   )}
 
-                  {/* Primary Reserve CTA */}
                   <button
                     type="button"
                     disabled={!priceBreakdown.available}
@@ -2079,7 +2044,7 @@ export default function App() {
       </section>
 
       {/* ==========================================
-          OFFICIAL 4 STAYCATION ROOMS (FROM PDF PAGES 1–5 & 9)
+          OFFICIAL 4 STAYCATION ROOMS
       ========================================== */}
       <section id="rooms" className="py-16 sm:py-24 bg-[#FAF8F5] border-b border-[#E6DBC8]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -2175,7 +2140,7 @@ export default function App() {
       </section>
 
       {/* ==========================================
-          PACKAGES & OFFICIAL STAYCATION RATE TABLE (FROM PDF PAGE 9)
+          PACKAGES & OFFICIAL STAYCATION RATE TABLE
       ========================================== */}
       <section id="packages" className="py-16 sm:py-24 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -2188,7 +2153,6 @@ export default function App() {
             </h2>
           </div>
 
-          {/* 1. ROOM-ONLY STAYCATION RATES TABLE (PDF PAGE 9) */}
           <div className="mb-16 bg-[#FAF8F5] rounded-3xl border border-[#E6DBC8] overflow-hidden shadow-xs">
             <div className="p-6 sm:p-8 bg-[#0B3553] text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
@@ -2206,7 +2170,6 @@ export default function App() {
             </div>
 
             <div className="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-              {/* Main Room Rate Table */}
               <div className="lg:col-span-7 overflow-x-auto">
                 <table className="w-full text-left border-collapse bg-white rounded-2xl overflow-hidden border border-[#E6DBC8]">
                   <thead>
@@ -2287,7 +2250,6 @@ export default function App() {
                 </table>
               </div>
 
-              {/* Additional Charges Table from PDF Page 9 */}
               <div className="lg:col-span-5">
                 <div className="bg-white rounded-2xl border border-[#E6DBC8] p-5 space-y-3">
                   <h4 className="text-sm font-extrabold uppercase tracking-wider text-[#0B3553] border-b border-slate-100 pb-2">
@@ -2316,7 +2278,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* 2. EXCLUSIVE RESORT PACKAGES (DAY/NIGHT TOURS & OVERNIGHT EXCLUSIVE) */}
           <div className="space-y-12">
             <div>
               <h3 className="text-2xl sm:text-3xl font-brand-serif font-bold text-[#0B3553] mb-6">
@@ -2461,7 +2422,7 @@ export default function App() {
       </section>
 
       {/* ==========================================
-          OFFICIAL STAYCATION POLICIES, HOUSE RULES & PAYMENT TERMS (FROM PDF PAGES 6–8)
+          OFFICIAL STAYCATION POLICIES, HOUSE RULES & PAYMENT TERMS
       ========================================== */}
       <section id="rules" className="py-16 sm:py-24 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -2479,7 +2440,6 @@ export default function App() {
             </p>
           </div>
 
-          {/* 8-Card Grid of Official Staycation Rules */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-14">
             {STAYCATION_POLICIES_PDF.map((policy) => {
               const IconComp = policy.icon;
@@ -2518,7 +2478,6 @@ export default function App() {
             })}
           </div>
 
-          {/* Payment, Cancellation & Rescheduling Policy Box (PDF Pages 7-8) */}
           <div className="rounded-3xl bg-[#0B3553] text-white p-6 sm:p-10 border-2 border-[#C8AD7F] shadow-md">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/15">
               <div className="flex items-center gap-3">
@@ -2686,13 +2645,11 @@ export default function App() {
                     d="M0 360C220 330 450 410 800 320V500H0V360Z"
                     fill="#EFE6D5"
                   />
-                  {/* Angat River */}
                   <path
                     d="M-50 280C160 220 350 350 560 260C680 210 760 230 850 200L850 330C720 360 620 330 490 380C290 450 140 340 -50 390Z"
                     fill="#1D5B8C"
                     fillOpacity="0.85"
                   />
-                  {/* Street Lines */}
                   <path
                     d="M120 0L290 250L650 160"
                     stroke="#FFFFFF"
@@ -2786,7 +2743,6 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-10 border-b border-white/15">
             {/* COLUMN 1: Brand & Contact Info */}
             <div className="md:col-span-5 space-y-6">
-              {/* Logo and Title */}
               <div className="flex items-center justify-center md:justify-start gap-3.5">
                 <img
                   src="/logo.png"
@@ -2807,7 +2763,6 @@ export default function App() {
                 A peaceful riverside haven designed for relaxation, fun, and unforgettable memories.
               </p>
 
-              {/* Contact Details */}
               <div className="space-y-3 text-sm">
                 <a
                   href="https://www.google.com/maps/search/?api=1&query=The+Forts+Riverside+Bustos+Bulacan"
@@ -2820,6 +2775,8 @@ export default function App() {
                 </a>
                 <a
                   href="tel:+639605038082"
+                  target="_blank"
+                  rel="noreferrer"
                   className="flex items-center justify-center md:justify-start gap-2.5 hover:text-white transition-colors"
                 >
                   <Phone className="w-4 h-4 text-[#C8AD7F]" />
@@ -2906,7 +2863,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Copyright */}
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
             <p>© 2026 The Forts Riverside Private Resort | theforts.pages.dev</p>
             <p className="flex items-center gap-1">
@@ -2985,7 +2941,6 @@ export default function App() {
             </div>
 
             {bookingSubmitResult?.status === 'success' ? (
-              /* SUCCESS CONFIRMATION VIEW WITH GCASH QR */
               <div className="p-6 sm:p-8 text-center space-y-4">
                 <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-8 h-8" />
@@ -3000,13 +2955,11 @@ export default function App() {
                   Your dates are now crossed out on our calendar. To officially lock in your booking, please settle the <strong>50% Down Payment ({formatPHP(priceBreakdown.downPayment50)})</strong> within 24 hours.
                 </p>
 
-                {/* PAYMENT DETAILS & QR BOX */}
                 <div className="p-5 rounded-xl bg-[#FAF8F5] border border-[#E6DBC8] text-left text-xs sm:text-sm shadow-inner">
                   <p className="font-bold text-[#0B3553] border-b border-[#E6DBC8] pb-2 mb-3">
                     Payment Details
                   </p>
                   <div className="flex flex-col sm:flex-row gap-5 items-center sm:items-start">
-                    {/* GCash QR Image from Public Folder */}
                     <img
                       src="/gcash-qr.png"
                       alt="GCash QR Code"
@@ -3040,7 +2993,6 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              /* RESERVATION FORM VIEW */
               <form
                 onSubmit={handleSubmitDirectBooking}
                 className="p-5 sm:p-6 space-y-4 max-h-[82vh] overflow-y-auto"
@@ -3121,7 +3073,6 @@ export default function App() {
                   />
                 </div>
 
-                {/* Summary Box */}
                 <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6DBC8] text-xs sm:text-sm space-y-2">
                   <div className="flex justify-between">
                     <span className="text-slate-500">Selected Dates:</span>
