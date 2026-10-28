@@ -1,101 +1,77 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
+  AlertCircle,
+  ArrowRight,
+  Bath,
+  BedDouble,
+  Bot,
   Calendar as CalendarIcon,
-  Clock,
-  Users,
+  Camera,
   Check,
-  Info,
-  MapPin,
-  Sparkles,
-  Sun,
-  Moon,
-  Utensils,
-  Car,
-  PawPrint,
-  Waves,
+  CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
   ChevronUp,
-  Copy,
-  ExternalLink,
-  Flame,
-  Plus,
-  Minus,
-  BedDouble,
-  Bath,
-  Wind,
-  PartyPopper,
-  ShieldCheck,
-  Menu,
-  X,
-  ArrowRight,
-  HelpCircle,
-  AlertCircle,
-  CheckCircle2,
+  Clock,
   Compass,
-  Trees,
-  Camera,
-  Maximize2,
-  Star,
-  Quote,
-  FileText,
-  RotateCcw,
-  Wifi,
-  Mic2,
-  Coffee,
   CreditCard,
-  Keyboard,
-  MessageCircle,
-  Send,
-  Bot,
+  ExternalLink,
+  FileText,
+  Flame,
   Heart,
-  Phone
+  HelpCircle,
+  Info,
+  Keyboard,
+  MapPin,
+  Maximize2,
+  Menu,
+  MessageCircle,
+  Minus,
+  Phone,
+  Plus,
+  Quote,
+  RotateCcw,
+  Send,
+  Sparkles,
+  Star,
+  Users,
+  Waves,
+  X
 } from 'lucide-react';
-
-// ============================================================================
-// 0. EASY PNG IMAGE CONFIGURATION LIST
-// ============================================================================
-const SITE_IMAGES = {
-  logo: '',
-  heroBackground: '/images/herobg.png',
-  swimmingPoolArea: '/images/swimming.png',
-  riversideBalconyArea: '/images/balcony.png',
-  functionSpace: '/images/function.png',
-  kitchenArea: '/images/kitchen.png',
-  recreationalArea: '/images/recreation.png',
-  gardenArea: '/images/garden.png',
-  // 4 Official Staycation Rooms from PDF
-  vistaRoom: '/overlooking.jpg',
-  hideoutRoom: '/hideout.jpg',
-  riverLoftRoom: '/barkada.jpg',
-  cozyDenRoom: '/cozy.jpg'
-};
-
-const FALLBACK_IMAGES = {
-  heroBackground:
-    'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=1920&q=80',
-  swimmingPoolArea:
-    'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=1000&q=80',
-  riversideBalconyArea:
-    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80',
-  functionSpace:
-    'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1000&q=80',
-  kitchenArea:
-    'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1000&q=80',
-  recreationalArea:
-    'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=1000&q=80',
-  gardenArea:
-    'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=1000&q=80',
-  vistaRoom:
-    'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=900&q=80',
-  hideoutRoom:
-    'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=900&q=80',
-  riverLoftRoom:
-    'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=900&q=80',
-  cozyDenRoom:
-    'https://images.unsplash.com/photo-1540518614846-7ede433c457?auto=format&fit=crop&w=900&q=80'
-};
+import {
+  BOOKING_TYPES,
+  FALLBACK_IMAGES,
+  PACKAGES_DATA,
+  ROOMS_DATA,
+  SITE_IMAGES
+} from './data/bookingData.js';
+import {
+  AMENITIES_GALLERY,
+  FAQS_DATA,
+  PAYMENT_CANCELLATION_PDF,
+  REVIEWS_DATA,
+  STAYCATION_POLICIES_PDF
+} from './data/siteContent.js';
+import {
+  QUICK_CHAT_QUESTIONS,
+  RESORT_SYSTEM_PROMPT
+} from './data/chatbotData.js';
+import {
+  addDaysToKey,
+  buildMonthDaysMondayFirst,
+  diffDaysBetweenKeys,
+  formatPHP,
+  formatReadableDate,
+  formatSlashDate,
+  getDayRateInfo,
+  toDateKey
+} from './utils/dateUtils.js';
+import {
+  FacebookIcon,
+  InstagramIcon
+} from './components/SocialIcons.jsx';
+import { BOOKING_SCRIPT_URL, GEMINI_API_KEY } from './config.js';
 
 function FortsBrandLogo({ className = 'w-12 h-12' }) {
   const [imgError, setImgError] = useState(false);
@@ -132,1134 +108,6 @@ function SmartResortImage({ localSrc, fallbackSrc, alt, className }) {
   );
 }
 
-// ============================================================================
-// 1. STEP 1 MAIN BOOKING TYPES (RETRACTABLE INTO 3 ICON BUTTONS)
-// ============================================================================
-
-const BOOKING_TYPES = [
-  {
-    id: 'staycation',
-    title: 'Staycation Booking',
-    shortLabel: 'Staycation',
-    subtitle: '22-Hr Room-Only Stay • Free Silog Breakfast, Pool & LPG',
-    badge: 'From ₱2,000 / Night',
-    icon: BedDouble,
-    shortDesc:
-      'Choose from our rooms. Available to book a week before the date only.',
-    selectionPrompt: 'Step 2: Select Your Staycation Room'
-  },
-  {
-    id: 'resort',
-    title: 'Exclusive Resort Booking',
-    shortLabel: 'Resort',
-    subtitle: 'Day Tour, Night Tour & 22-Hr Exclusive Packages',
-    badge: 'Exclusive Use',
-    icon: Waves,
-    shortDesc:
-      'Private access to the swimming pools, riverside balcony, function space & rooms.',
-    selectionPrompt: 'Step 2: Select Your Exclusive Resort Package'
-  },
-  {
-    id: 'events',
-    title: 'Events Booking',
-    shortLabel: 'Events',
-    subtitle: 'Birthdays, Reunions, Team Building & Celebrations',
-    badge: 'Custom Quote',
-    icon: PartyPopper,
-    shortDesc:
-      'Celebrate milestones by the scenic Angat River.',
-    selectionPrompt: 'Step 2: Select Your Event Type'
-  }
-];
-
-// ============================================================================
-// 2. PACKAGES, STAYCATION ROOMS (UPDATED FROM PDF) & EVENTS DATA
-// ============================================================================
-
-const PACKAGES_DATA = [
-  // --- 1. ROOM-ONLY STAYCATION BOOKINGS (EXACT PDF ROOMS, RATES & INCLUSIONS) ---
-  {
-    id: 'staycation-cozy-den',
-    category: 'staycation',
-    bookingType: 'staycation',
-    subGroup: '22-Hour Room-Only Staycation',
-    name: 'THE COZY DEN — Cozy Room',
-    shortName: 'The Cozy Den',
-    roomCode: 'Cozy Room',
-    timeLabel: '2PM–12NN (22 Hrs)',
-    duration: '22 Hours per Night (2:00 PM – 12:00 NN)',
-    checkIn: '2:00 PM',
-    checkOut: '12:00 NN',
-    isOvernightMultiDay: true,
-    icon: BedDouble,
-    minPax: 2,
-    maxPax: 4,
-    paxLabel: '2–4 Guests',
-    weekdayRate: 2000,
-    weekendRate: 2500,
-    monThuOnly: false,
-    excessFeePerHead: 300, // PDF: P300/person inclusive of pool access & silog breakfast
-    allowExtraMattress: false,
-    gasIncluded: true,
-    gasFeeOption: 0,
-    maxExtendedHours: 2,
-    extendedHourRate: 500,
-    badge: '4 Single Floor Mattresses • Private CR',
-    includedRooms: 'Air-conditioned room • 4 single floor mattresses • Private bathroom',
-    description:
-      'Cozy air-conditioned staycation room for 2–4 guests featuring 4 single floor mattresses and a private bathroom. Includes Silog breakfast for each registered guest, swimming pool access, kitchen & LPG use, Wi-Fi, parking, and karaoke.',
-    inclusions: [
-      '22-hour room accommodation (2:00 PM check-in to 12:00 NN check-out)',
-      'Silog breakfast for each registered guest',
-      'Air-conditioned room with 4 single floor mattresses & Private bathroom',
-      'Swimming pool, Riverside area & common areas access',
-      'Kitchen access and free use of LPG for cooking',
-      'Wi-Fi access, Parking space & Karaoke use (until 10:00 PM)'
-    ]
-  },
-  {
-    id: 'staycation-vista',
-    category: 'staycation',
-    bookingType: 'staycation',
-    subGroup: '22-Hour Room-Only Staycation',
-    name: 'THE VISTA — Overlooking Room',
-    shortName: 'The Vista',
-    roomCode: 'Overlooking Room',
-    timeLabel: '2PM–12NN (22 Hrs)',
-    duration: '22 Hours per Night (2:00 PM – 12:00 NN)',
-    checkIn: '2:00 PM',
-    checkOut: '12:00 NN',
-    isOvernightMultiDay: true,
-    icon: Sun,
-    minPax: 2,
-    maxPax: 4,
-    paxLabel: '2–4 Guests',
-    weekdayRate: 2800,
-    weekendRate: 3300,
-    monThuOnly: false,
-    excessFeePerHead: 300,
-    allowExtraMattress: true,
-    gasIncluded: true,
-    gasFeeOption: 0,
-    maxExtendedHours: 2,
-    extendedHourRate: 500,
-    badge: '2 Double Beds + Sofa • Private CR',
-    includedRooms: 'Air-conditioned room • 2 double beds • Sofa • Private bathroom',
-    description:
-      'Scenic overlooking room for 2–4 guests with 2 double beds, a comfortable sofa, and a private bathroom. Includes Silog breakfast per registered guest, pool access, free LPG cooking use, Wi-Fi, parking, and karaoke.',
-    inclusions: [
-      '22-hour room accommodation (2:00 PM check-in to 12:00 NN check-out)',
-      'Silog breakfast for each registered guest',
-      'Air-conditioned room with 2 double beds, Sofa & Private bathroom',
-      'Swimming pool, Riverside area & common areas access',
-      'Kitchen access and free use of LPG for cooking',
-      'Extra mattress available for an additional fee (₱150 single / ₱200 double)'
-    ]
-  },
-  {
-    id: 'staycation-hideout',
-    category: 'staycation',
-    bookingType: 'staycation',
-    subGroup: '22-Hour Room-Only Staycation',
-    name: 'THE HIDEOUT — Small Barkada Room',
-    shortName: 'The Hideout',
-    roomCode: 'Small Barkada Room',
-    timeLabel: '2PM–12NN (22 Hrs)',
-    duration: '22 Hours per Night (2:00 PM – 12:00 NN)',
-    checkIn: '2:00 PM',
-    checkOut: '12:00 NN',
-    isOvernightMultiDay: true,
-    icon: Users,
-    minPax: 4,
-    maxPax: 6,
-    paxLabel: '4–6 Guests',
-    weekdayRate: 3000,
-    weekendRate: 3500,
-    monThuOnly: false,
-    excessFeePerHead: 300,
-    allowExtraMattress: false,
-    gasIncluded: true,
-    gasFeeOption: 0,
-    maxExtendedHours: 2,
-    extendedHourRate: 500,
-    badge: '2 Single Bunk Beds + 1 Double Bed',
-    includedRooms: 'Air-conditioned room • 2 single bunk beds • 1 double bed • Shared bathroom',
-    description:
-      'Designed for families and small barkadas of 4–6 guests! Equipped with 2 single bunk beds, 1 double bed, and shared bathroom access, plus Silog breakfast for each registered guest, pool access, and free LPG use.',
-    inclusions: [
-      '22-hour room accommodation (2:00 PM check-in to 12:00 NN check-out)',
-      'Silog breakfast for each registered guest',
-      'Air-conditioned room with 2 single bunk beds, 1 double bed & Shared bathroom',
-      'Swimming pool, Riverside area & common areas access',
-      'Kitchen access and free use of LPG for cooking',
-      'Wi-Fi access, Parking space & Karaoke use (until 10:00 PM)'
-    ]
-  },
-  {
-    id: 'staycation-river-loft',
-    category: 'staycation',
-    bookingType: 'staycation',
-    subGroup: '22-Hour Room-Only Staycation',
-    name: 'THE RIVER LOFT — Barkada Room',
-    shortName: 'The River Loft',
-    roomCode: 'Barkada Room',
-    timeLabel: '2PM–12NN (22 Hrs)',
-    duration: '22 Hours per Night (2:00 PM – 12:00 NN)',
-    checkIn: '2:00 PM',
-    checkOut: '12:00 NN',
-    isOvernightMultiDay: true,
-    icon: Sparkles,
-    minPax: 10,
-    maxPax: 15,
-    paxLabel: '10–15 Guests',
-    weekdayRate: 5000,
-    weekendRate: 6000,
-    monThuOnly: false,
-    excessFeePerHead: 300,
-    allowExtraMattress: true,
-    gasIncluded: true,
-    gasFeeOption: 0,
-    maxExtendedHours: 2,
-    extendedHourRate: 500,
-    badge: '2 Double Bunks + 3 Single Bunks • Private CR',
-    includedRooms: 'Air-conditioned • 2 double bunk beds • 3 single bunk beds • Private bathroom',
-    description:
-      'Our largest staycation room for 10–15 guests! Features 2 double bunk beds, 3 single bunk beds, and a private bathroom. Includes Silog breakfast per registered guest, pool access, kitchen & LPG use, Wi-Fi, and karaoke.',
-    inclusions: [
-      '22-hour room accommodation (2:00 PM check-in to 12:00 NN check-out)',
-      'Silog breakfast for each registered guest',
-      '2 double bunk beds, 3 single bunk beds & Private bathroom',
-      'Swimming pool, Riverside area & common areas access',
-      'Kitchen access and free use of LPG for cooking',
-      'Extra mattress available for an additional fee (₱150 single / ₱200 double)'
-    ]
-  },
-
-  // --- 2. EXCLUSIVE RESORT BOOKING PACKAGES (ANY DAY) ---
-  {
-    id: 'day-tour',
-    category: 'resort',
-    bookingType: 'resort',
-    subGroup: 'Day & Night Tours',
-    name: 'Day Tour Package (Exclusive)',
-    shortName: 'Day Tour',
-    timeLabel: '8AM–5PM (9 Hrs)',
-    duration: '9 Hours (8:00 AM – 5:00 PM)',
-    checkIn: '8:00 AM',
-    checkOut: '5:00 PM',
-    isOvernightMultiDay: false,
-    icon: Sun,
-    minPax: 1,
-    maxPax: 15,
-    paxLabel: 'Up to 30 Pax',
-    weekdayRate: 4500,
-    weekendRate: 5000,
-    monThuOnly: false,
-    excessFeePerHead: 150,
-    allowExtraMattress: false,
-    gasIncluded: false,
-    gasFeeOption: 400,
-    maxExtendedHours: 2,
-    extendedHourRate: 500,
-    badge: 'Daytime Escape',
-    includedRooms: 'The Vista - Overlooking Room',
-    description:
-      'Includes exclusive access to the resort’s pools, riverside balcony, kitchen, function space, and recreational facilities for a fun-filled daytime escape.',
-    inclusions: [
-      'Complimentary stay in The Vista (Overlooking Room)',
-      'Full access to Swimming Pool Area',
-      'Riverside Balcony & Garden Area access',
-      'Recreational / Activities Area (Badminton, etc.)',
-      'Kitchen & Function Space access',
-      'Free On-site Parking & Pet-Friendly spaces'
-    ]
-  },
-  {
-    id: 'night-tour',
-    category: 'resort',
-    bookingType: 'resort',
-    subGroup: 'Day & Night Tours',
-    name: 'Night Tour Package (Exclusive)',
-    shortName: 'Night Tour',
-    timeLabel: '7PM–6AM (11 Hrs)',
-    duration: '11 Hours (7:00 PM – 6:00 AM)',
-    checkIn: '7:00 PM',
-    checkOut: '6:00 AM (Next Day)',
-    isOvernightMultiDay: false,
-    icon: Moon,
-    minPax: 1,
-    maxPax: 15,
-    paxLabel: 'Up to 30 Pax',
-    weekdayRate: 6999,
-    weekendRate: 7500,
-    monThuOnly: false,
-    excessFeePerHead: 200,
-    allowExtraMattress: false,
-    gasIncluded: false,
-    gasFeeOption: 400,
-    maxExtendedHours: 2,
-    extendedHourRate: 500,
-    badge: 'Evening Getaway',
-    includedRooms: 'The Vista - Overlooking Room',
-    description:
-      'Enjoy evening relaxation with warm ambient string lighting, peaceful riverside views, night swimming, and exclusive access to the resort’s amenities.',
-    inclusions: [
-      'Complimentary stay in The Vista (Overlooking Room)',
-      'Night swimming with ambient pool lighting',
-      'Riverside Balcony & Function Space access',
-      'Recreational & Kitchen Area access',
-      'Peaceful overnight breeze by Angat River',
-      'Free On-site Parking'
-    ]
-  },
-  {
-    id: 'overnight-family',
-    category: 'resort',
-    bookingType: 'resort',
-    subGroup: 'Overnight Exclusive (22 Hrs)',
-    name: 'Family Package (Overnight Exclusive)',
-    shortName: 'Family Overnight',
-    timeLabel: '2PM–12NN (Up to 3D2N)',
-    duration: '22 Hours per Night (2:00 PM – 12:00 NN)',
-    checkIn: '2:00 PM',
-    checkOut: '12:00 NN',
-    isOvernightMultiDay: true,
-    icon: BedDouble,
-    minPax: 4,
-    maxPax: 8,
-    paxLabel: '4–8 Pax',
-    weekdayRate: 7999,
-    weekendRate: 8999,
-    monThuOnly: false,
-    excessFeePerHead: 200,
-    allowExtraMattress: true,
-    gasIncluded: false,
-    gasFeeOption: 400,
-    maxExtendedHours: 2,
-    extendedHourRate: 500,
-    badge: '22-Hr Exclusive',
-    includedRooms: 'Private Air-Conditioned Room Stay + Whole Resort Grounds',
-    description:
-      '22-hour exclusive resort experience tailored for families of 4 to 8 guests. Can be booked for 2 Days & 1 Night or up to 3 Days & 2 Nights.',
-    inclusions: [
-      'Exclusive resort access (2:00 PM check-in – 12:00 NN check-out)',
-      'Private air-conditioned room accommodation',
-      'Full access to Swimming Pool & Riverside Balcony',
-      'Kitchen Area, Garden & Function Space access',
-      'Recreational / Activities Area access',
-      'On-site Parking & Pet-Friendly'
-    ]
-  },
-  {
-    id: 'overnight-barkada',
-    category: 'resort',
-    bookingType: 'resort',
-    subGroup: 'Overnight Exclusive (22 Hrs)',
-    name: 'Barkada Package (Overnight Exclusive)',
-    shortName: 'Barkada Overnight',
-    timeLabel: '2PM–12NN (Up to 3D2N)',
-    duration: '22 Hours per Night (2:00 PM – 12:00 NN)',
-    checkIn: '2:00 PM',
-    checkOut: '12:00 NN',
-    isOvernightMultiDay: true,
-    icon: Users,
-    minPax: 9,
-    maxPax: 15,
-    paxLabel: '9–15 Pax',
-    weekdayRate: 10999,
-    weekendRate: 11999,
-    monThuOnly: false,
-    excessFeePerHead: 200,
-    allowExtraMattress: true,
-    gasIncluded: false,
-    gasFeeOption: 400,
-    maxExtendedHours: 2,
-    extendedHourRate: 500,
-    badge: 'Barkada Favorite',
-    includedRooms: 'The River Loft (Barkada Room) + Exclusive Resort Access',
-    description:
-      'Designed for barkadas and medium groups of 9 to 15 guests looking for an unforgettable 22-hour riverside bonding experience with full exclusive resort access.',
-    inclusions: [
-      'Exclusive resort access (2:00 PM – 12:00 NN)',
-      'Air-conditioned group room stay',
-      'Day & Night Swimming Pool access',
-      'Riverside Balcony, Function & Kitchen Area',
-      'Recreational Court & Garden Area access',
-      'On-site Parking'
-    ]
-  },
-  {
-    id: 'overnight-midgroup',
-    category: 'resort',
-    bookingType: 'resort',
-    subGroup: 'Overnight Exclusive (22 Hrs)',
-    name: 'Mid Group Package (Overnight Exclusive)',
-    shortName: 'Mid Group',
-    timeLabel: '2PM–12NN (Up to 3D2N)',
-    duration: '22 Hours per Night (2:00 PM – 12:00 NN)',
-    checkIn: '2:00 PM',
-    checkOut: '12:00 NN',
-    isOvernightMultiDay: true,
-    icon: Users,
-    minPax: 16,
-    maxPax: 20,
-    paxLabel: '16–20 Pax',
-    weekdayRate: 13999,
-    weekendRate: 14999,
-    monThuOnly: false,
-    excessFeePerHead: 200,
-    allowExtraMattress: true,
-    gasIncluded: false,
-    gasFeeOption: 400,
-    maxExtendedHours: 2,
-    extendedHourRate: 500,
-    badge: '2 Group Rooms Included',
-    includedRooms: 'Includes The River Loft & The Hideout + Exclusive Grounds',
-    description:
-      'Spacious 22-hour exclusive package for 16 to 20 guests, complete with two group rooms plus full exclusive access to all resort amenities.',
-    inclusions: [
-      'Includes BOTH The River Loft & The Hideout Rooms',
-      'Exclusive resort access (2:00 PM – 12:00 NN)',
-      'Full Swimming Pool & Riverside Balcony access',
-      'Function Space, Kitchen & Garden Area',
-      'Recreational / Activities Area access',
-      'Free On-site Parking'
-    ]
-  },
-  {
-    id: 'overnight-wholeresort',
-    category: 'resort',
-    bookingType: 'resort',
-    subGroup: 'Overnight Exclusive (22 Hrs)',
-    name: 'Whole Resort Package (Overnight Exclusive)',
-    shortName: 'Whole Resort',
-    timeLabel: '2PM–12NN (Up to 3D2N)',
-    duration: '22 Hours per Night (2:00 PM – 12:00 NN)',
-    checkIn: '2:00 PM',
-    checkOut: '12:00 NN',
-    isOvernightMultiDay: true,
-    icon: Sparkles,
-    minPax: 20,
-    maxPax: 30,
-    paxLabel: 'Up to 30 Pax',
-    weekdayRate: 15999,
-    weekendRate: 16499,
-    monThuOnly: false,
-    excessFeePerHead: 200,
-    allowExtraMattress: true,
-    gasIncluded: false,
-    gasFeeOption: 400,
-    maxExtendedHours: 2,
-    extendedHourRate: 500,
-    badge: 'ALL 4 Resort Rooms',
-    includedRooms: 'Includes ALL 4 Rooms (The Vista, The Hideout, The River Loft & The Cozy Den)',
-    description:
-      'The ultimate private resort takeover for up to 30 guests! Includes ALL 4 air-conditioned rooms at The Forts plus complete exclusive access to every amenity.',
-    inclusions: [
-      'Includes ALL 4 Resort Rooms (The Vista, The Hideout, The River Loft & The Cozy Den)',
-      'Up to 30 guests included in base rate',
-      'Total privacy & exclusive resort access',
-      'Swimming Pool, Riverside Balcony & Function Space',
-      'Kitchen Area & Recreational Court access',
-      'Generous On-site Parking & Pet-Friendly'
-    ]
-  },
-
-  // --- 3. EVENTS BOOKING ---
-  {
-    id: 'event-birthday',
-    category: 'events',
-    bookingType: 'events',
-    subGroup: 'Celebrations & Gatherings',
-    name: 'Birthday & Milestone Celebration',
-    shortName: 'Birthday / Milestone',
-    timeLabel: 'Custom Schedule',
-    duration: 'Flexible Event Hours (By Arrangement)',
-    checkIn: 'Custom Schedule',
-    checkOut: 'Custom Schedule',
-    isOvernightMultiDay: true,
-    icon: PartyPopper,
-    minPax: 20,
-    maxPax: 80,
-    paxLabel: '30–80+ Guests',
-    weekdayRate: 0,
-    weekendRate: 0,
-    isEvent: true,
-    monThuOnly: false,
-    excessFeePerHead: 0,
-    gasIncluded: false,
-    gasFeeOption: 400,
-    maxExtendedHours: 2,
-    extendedHourRate: 500,
-    badge: 'Price Upon Inquiry',
-    includedRooms: 'Function Space, Pool, Riverside Balcony & Optional Rooms',
-    description:
-      'Celebrate birthdays, debuts, christenings, or anniversaries with a scenic riverside backdrop, covered function space, and pool access.',
-    inclusions: [
-      'Covered Function Space & Open Garden Areas',
-      'Scenic Riverside Balcony backdrop for photos',
-      'Swimming Pool & Recreational Area access',
-      'Kitchen Area access for catering or food prep',
-      'Customizable room inclusions based on guest count'
-    ]
-  },
-  {
-    id: 'event-reunion',
-    category: 'events',
-    bookingType: 'events',
-    subGroup: 'Celebrations & Gatherings',
-    name: 'Family Reunion & Clan Gathering',
-    shortName: 'Family Reunion',
-    timeLabel: 'Full Day or Overnight',
-    duration: 'Full Day or Multi-Day Event',
-    checkIn: 'Custom Schedule',
-    checkOut: 'Custom Schedule',
-    isOvernightMultiDay: true,
-    icon: Users,
-    minPax: 25,
-    maxPax: 100,
-    paxLabel: '30–100 Guests',
-    weekdayRate: 0,
-    weekendRate: 0,
-    isEvent: true,
-    monThuOnly: false,
-    excessFeePerHead: 0,
-    gasIncluded: false,
-    gasFeeOption: 400,
-    maxExtendedHours: 2,
-    extendedHourRate: 500,
-    badge: 'Price Upon Inquiry',
-    includedRooms: 'Whole Resort Grounds, Function Pavilion & Rooms',
-    description:
-      'Bring the whole family together by the Angat River with plenty of open space for games, shared meals, swimming, and multi-generational bonding.',
-    inclusions: [
-      'Exclusive Function Space & Dining Area',
-      'Recreational Court for family games & activities',
-      'Adult & Kiddie Swimming Pool access',
-      'Optional Whole Resort room bundle for elders & kids',
-      'Generous On-site Parking'
-    ]
-  },
-  {
-    id: 'event-corporate',
-    category: 'events',
-    bookingType: 'events',
-    subGroup: 'Celebrations & Gatherings',
-    name: 'Corporate Outing / Team Building',
-    shortName: 'Team Building',
-    timeLabel: 'Custom Day / Overnight',
-    duration: 'Custom Day or Overnight Schedule',
-    checkIn: 'Custom Schedule',
-    checkOut: 'Custom Schedule',
-    isOvernightMultiDay: true,
-    icon: Sparkles,
-    minPax: 15,
-    maxPax: 60,
-    paxLabel: '15–60+ Pax',
-    weekdayRate: 0,
-    weekendRate: 0,
-    isEvent: true,
-    monThuOnly: false,
-    excessFeePerHead: 0,
-    gasIncluded: false,
-    gasFeeOption: 400,
-    maxExtendedHours: 2,
-    extendedHourRate: 500,
-    badge: 'Price Upon Inquiry',
-    includedRooms: 'Function Hall, Activity Court, Pool & Group Rooms',
-    description:
-      'Energize your team in a refreshing riverside setting complete with an outdoor activity court for team-building games, covered pavilion, and group rooms.',
-    inclusions: [
-      'Open Recreational / Badminton Court for team games',
-      'Covered Function Space for workshops & dining',
-      'Swimming Pool & Riverside Balcony lounge',
-      'Flexible group room accommodations'
-    ]
-  }
-];
-
-// ============================================================================
-// 3. OFFICIAL 4 ROOMS DATA (UPDATED EXACTLY FROM PDF PAGES 1-4 & 9)
-// ============================================================================
-
-const ROOMS_DATA = [
-  {
-    id: 'room-vista',
-    packageId: 'staycation-vista',
-    name: 'THE VISTA',
-    subtitle: 'Overlooking Room',
-    capacity: '2–4 Guests',
-    weekdayRate: 2800,
-    weekendRate: 3300,
-    tagline: 'Scenic overlooking sanctuary with 2 double beds, sofa, and private bathroom',
-    beds: ['2 Double Beds', 'Sofa'],
-    cr: 'Private Bathroom',
-    hasPrivateCR: true,
-    extraMattressNote: 'Extra mattress available for an additional fee (₱150 single / ₱200 double)',
-    features: [
-      'Air-conditioned room',
-      '2 double beds & Sofa',
-      'Private bathroom',
-      'Includes Silog breakfast for each registered guest',
-      'Swimming pool access, Kitchen & free LPG use, Wi-Fi & Karaoke'
-    ],
-    localSrc: SITE_IMAGES.vistaRoom,
-    image: FALLBACK_IMAGES.vistaRoom
-  },
-  {
-    id: 'room-hideout',
-    packageId: 'staycation-hideout',
-    name: 'THE HIDEOUT',
-    subtitle: 'Small Barkada Room',
-    capacity: '4–6 Guests',
-    weekdayRate: 3000,
-    weekendRate: 3500,
-    tagline: 'Comfortable group room with bunk beds and a double bed for small barkadas & families',
-    beds: ['2 Single Bunk Beds', '1 Double Bed'],
-    cr: 'Shared Bathroom',
-    hasPrivateCR: false,
-    extraMattressNote: 'Ideal layout for 4–6 registered guests',
-    features: [
-      'Air-conditioned room',
-      '2 single bunk beds & 1 double bed',
-      'Shared bathroom access',
-      'Includes Silog breakfast for each registered guest',
-      'Swimming pool access, Kitchen & free LPG use, Wi-Fi & Karaoke'
-    ],
-    localSrc: SITE_IMAGES.hideoutRoom,
-    image: FALLBACK_IMAGES.hideoutRoom
-  },
-  {
-    id: 'room-river-loft',
-    packageId: 'staycation-river-loft',
-    name: 'THE RIVER LOFT',
-    subtitle: 'Barkada Room',
-    capacity: '10–15 Guests',
-    weekdayRate: 5000,
-    weekendRate: 6000,
-    tagline: 'Spacious barkada headquarters with 2 double bunk beds, 3 single bunk beds & private CR',
-    beds: ['2 Double Bunk Beds', '3 Single Bunk Beds'],
-    cr: 'Private Bathroom',
-    hasPrivateCR: true,
-    extraMattressNote: 'Extra mattress available for an additional fee (₱150 single / ₱200 double)',
-    features: [
-      'Air-conditioned room',
-      '2 double bunk beds & 3 single bunk beds',
-      'Private bathroom',
-      'Includes Silog breakfast for each registered guest',
-      'Swimming pool access, Kitchen & free LPG use, Wi-Fi & Karaoke'
-    ],
-    localSrc: SITE_IMAGES.riverLoftRoom,
-    image: FALLBACK_IMAGES.riverLoftRoom
-  },
-  {
-    id: 'room-cozy-den',
-    packageId: 'staycation-cozy-den',
-    name: 'THE COZY DEN',
-    subtitle: 'Cozy Room',
-    capacity: '2–4 Guests',
-    weekdayRate: 2000,
-    weekendRate: 2500,
-    tagline: 'Budget-friendly air-conditioned room with 4 single floor mattresses & private CR',
-    beds: ['4 Single Floor Mattresses'],
-    cr: 'Private Bathroom',
-    hasPrivateCR: true,
-    extraMattressNote: 'Most affordable 22-hour staycation room with private bathroom',
-    features: [
-      'Air-conditioned room',
-      '4 single floor mattresses',
-      'Private bathroom',
-      'Includes Silog breakfast for each registered guest',
-      'Swimming pool access, Kitchen & free LPG use, Wi-Fi & Karaoke'
-    ],
-    localSrc: SITE_IMAGES.cozyDenRoom,
-    image: FALLBACK_IMAGES.cozyDenRoom
-  }
-];
-
-// ============================================================================
-// 4. VISUAL AMENITIES PHOTO SHOWCASE DATA
-// ============================================================================
-
-const AMENITIES_GALLERY = [
-  {
-    id: 'amenity-pool',
-    title: 'Swimming Pool Area',
-    tag: 'Included in All Bookings',
-    localSrc: SITE_IMAGES.swimmingPoolArea,
-    fallbackSrc: FALLBACK_IMAGES.swimmingPoolArea,
-    icon: Waves,
-    description:
-      'Refreshing blue-tiled swimming pool with dedicated adult and kiddie sections, overhead sun-shade canopy, and warm string lighting for relaxing swims.',
-    highlights: ['Overhead Shade Canopy', 'Kiddie & Adult Sections', 'Warm Night String Lights']
-  },
-  {
-    id: 'amenity-balcony',
-    title: 'Riverside Balcony Area',
-    tag: 'Direct Angat River & Sunset View',
-    localSrc: SITE_IMAGES.riversideBalconyArea,
-    fallbackSrc: FALLBACK_IMAGES.riversideBalconyArea,
-    icon: Sun,
-    description:
-      'Our signature elevated deck overlooking the tranquil Angat River. The best spot at the resort for morning Silog breakfast, golden-hour sunset photos, and cool breezes.',
-    highlights: ['Unobstructed River View', 'Morning Silog Breakfast Spot', 'Breezy Open-Air Deck']
-  },
-  {
-    id: 'amenity-function',
-    title: 'Function Space & Karaoke Area',
-    tag: 'Karaoke Included (Until 10 PM)',
-    localSrc: SITE_IMAGES.functionSpace,
-    fallbackSrc: FALLBACK_IMAGES.functionSpace,
-    icon: Mic2,
-    description:
-      'Spacious, well-ventilated covered pavilion right beside the pool—equipped with karaoke use (until 10:00 PM) and Wi-Fi access for dining, celebrations, and bonding.',
-    highlights: ['Karaoke Included (Until 10 PM)', 'Free Wi-Fi Access', 'Covered Dining Pavilion']
-  },
-  {
-    id: 'amenity-kitchen',
-    title: 'Kitchen & LPG Cooking Area',
-    tag: 'Free LPG on Staycations',
-    localSrc: SITE_IMAGES.kitchenArea,
-    fallbackSrc: FALLBACK_IMAGES.kitchenArea,
-    icon: Utensils,
-    description:
-      'Prepare hot meals with ease. Kitchen access and use of LPG for cooking are included free on all Room-Only Staycations (and optional +₱400 on Exclusive Resort Packages).',
-    highlights: ['Free LPG on Staycations', 'Prep Counter & Sink', 'No Corkage on Food']
-  },
-  {
-    id: 'amenity-recreation',
-    title: 'Recreational & Parking Court',
-    tag: 'Free On-Site Parking',
-    localSrc: SITE_IMAGES.recreationalArea,
-    fallbackSrc: FALLBACK_IMAGES.recreationalArea,
-    icon: Car,
-    description:
-      'Wide gated concrete court where guests can play outdoor games or park private vehicles securely inside the resort grounds.',
-    highlights: ['Included Parking Space', 'Badminton & Outdoor Games', 'Secure Gated Grounds']
-  },
-  {
-    id: 'amenity-garden',
-    title: 'Riverside Garden & Common Areas',
-    tag: 'Nature & Relaxation',
-    localSrc: SITE_IMAGES.gardenArea,
-    fallbackSrc: FALLBACK_IMAGES.gardenArea,
-    icon: Trees,
-    description:
-      'Surrounded by lush trees and tropical plants along the riverbank, featuring shaded umbrella seating where you can unwind in nature.',
-    highlights: ['Shaded Umbrella Seating', 'Riverside Access', 'Peaceful Nature Vibe']
-  }
-];
-
-// ============================================================================
-// 5. OFFICIAL POLICIES & HOUSE RULES FROM THE PDF (PAGES 6–8)
-// ============================================================================
-
-const STAYCATION_POLICIES_PDF = [
-  {
-    num: '01',
-    title: 'Check-in & Check-out',
-    icon: Clock,
-    items: [
-      'Check-in: 2:00 PM | Check-out: 12:00 NN the following day (22-hour stay).',
-      'Early check-in or late check-out is subject to availability and additional charges.'
-    ]
-  },
-  {
-    num: '02',
-    title: 'Guest Capacity & Registration',
-    icon: Users,
-    items: [
-      'Only registered guests are allowed. Extra guests must be declared and approved before arrival.',
-      'Additional guests are charged ₱300 per person per stay (inclusive of pool access and Silog breakfast), subject to room capacity.',
-      'Visitors are not allowed without management approval.'
-    ]
-  },
-  {
-    num: '03',
-    title: 'Swimming Pool Rules',
-    icon: Waves,
-    items: [
-      'Pool use is included during the stay. Guests swim at their own risk; follow posted safety instructions.',
-      'No food, drinks, or glass containers in the pool.',
-      'Children must be supervised by a responsible adult at all times. No running, pushing, or rough play around the pool.'
-    ]
-  },
-  {
-    num: '04',
-    title: 'Karaoke & Quiet Hours',
-    icon: Mic2,
-    items: [
-      'Karaoke is included, subject to availability and resort rules.',
-      'Karaoke use strictly ends at 10:00 PM.',
-      'Guests must keep noise at a reasonable level, especially in shared areas.'
-    ]
-  },
-  {
-    num: '05',
-    title: 'Kitchen & Cooking',
-    icon: Utensils,
-    items: [
-      'Kitchen use and LPG are included for Staycation bookings.',
-      'Use cooking equipment responsibly, never leave cooking unattended, and turn off the LPG after use.',
-      'Guests must clean their cooking area, wash used utensils, and dispose of food waste properly.'
-    ]
-  },
-  {
-    num: '06',
-    title: 'Room, Property Care & Cleanliness',
-    icon: ShieldCheck,
-    items: [
-      'Keep rooms, furniture, appliances, and linens in good condition. Do not move furniture or mattresses between rooms without permission.',
-      'Lost or damaged resort property may be charged at a reasonable replacement or repair cost, subject to verification.',
-      'Keep the room and shared areas tidy and place trash in designated bins. Excessive mess requiring special cleaning may incur a disclosed cleaning fee.'
-    ]
-  },
-  {
-    num: '07',
-    title: 'Safety & Prohibited Activities',
-    icon: AlertCircle,
-    items: [
-      'No illegal drugs, dangerous activities, or unauthorized parties.',
-      'No smoking inside air-conditioned rooms.',
-      'No pets in the swimming pool. Guests are responsible for their personal belongings and supervising children in their care.'
-    ]
-  },
-  {
-    num: '08',
-    title: 'Breakfast & Shared Access Policy',
-    icon: Coffee,
-    items: [
-      'One Silog breakfast per registered guest is included on Staycation bookings (confirm meal choices and serving schedule before arrival).',
-      'Shared resort access: Room-only bookings do not grant exclusive use of the resort. Pool and common areas may be shared with other guests.',
-      'Weekday and non-holiday room-only bookings may be accepted in advance. Weekend and holiday room-only bookings open 7 days before the date if no whole-resort booking is confirmed.'
-    ]
-  }
-];
-
-const PAYMENT_CANCELLATION_PDF = [
-  {
-    title: '1. Reservation & 50% Down Payment',
-    items: [
-      'A 50% down payment (DP) is required to secure your reservation.',
-      'Your booking is confirmed only after management verifies your payment (send proof of payment through the official booking channel).',
-      'The remaining 50% balance must be paid upon arrival, before room use.'
-    ]
-  },
-  {
-    title: '2. Cancellation & No-Show Policy',
-    items: [
-      'Guests must inform management as soon as possible if they need to cancel.',
-      'The down payment is generally non-refundable for guest-initiated cancellations, subject to applicable law.',
-      'Failure to arrive on the scheduled check-in date without prior notice is considered a no-show, and the down payment will be forfeited.'
-    ]
-  },
-  {
-    title: '3. Rescheduling Policy (7-Day Rule)',
-    items: [
-      'One reschedule is allowed if requested at least 7 days before check-in, subject to availability and management approval.',
-      'Any difference in room rates, seasonal rates, or applicable fees must be settled by the guest.',
-      'Rescheduling requests made less than 7 days before check-in may be declined or subject to additional conditions.'
-    ]
-  },
-  {
-    title: '4. Cancellation by the Resort & Terms Agreement',
-    items: [
-      'If The Forts must cancel a confirmed booking, the guest may choose either a full refund of payments made or rescheduling to another available date.',
-      'Payment of the 50% down payment confirms the guest’s acceptance of the resort’s booking, payment, cancellation, and rescheduling policies.'
-    ]
-  }
-];
-
-// ============================================================================
-// 6. GUEST REVIEWS DATA
-// ============================================================================
-
-const REVIEWS_DATA = [
-  {
-    id: 'rev-1',
-    name: 'Joe Baluyut',
-    stayType: 'Google Review',
-    date: 'October 2025',
-    rating: 5,
-    highlight: 'Love the river view!',
-    comment:
-      'Recommended for family and friends events. Super fun!'
-  },
-  {
-    id: 'rev-2',
-    name: 'Zyrah Red',
-    stayType: 'Google Review',
-    date: 'September 2025',
-    rating: 5,
-    highlight: 'Place is huge with good ambiance.',
-    comment:
-      'Nice Place to visit with your Family & Friends.'
-  },
-  {
-    id: 'rev-3',
-    name: 'Mary Christine Recto',
-    stayType: 'Facebook Review',
-    date: 'September 2026',
-    rating: 5,
-    highlight: 'Would definitely come back!',
-    comment:
-      'Clean place, nice staff, and a relaxing stay. '
-  },
-  {
-    id: 'rev-4',
-    name: 'Therese David',
-    stayType: 'Facebook Review',
-    date: 'July 2025',
-    rating: 5,
-    highlight: 'Whether you’re looking to unwind, reconnect, or simply escape the noise of the city—this resort is worth every peso.',
-    comment:
-      'Highly recommended 👌 Just had the most amazing stay with our SFC Family at this private resort! From the moment we arrived, we were welcomed with warmth. Ideal for family getaways, barkada trips, or even quiet solo retreats.'
-  }
-];
-
-// ============================================================================
-// 7. PHILIPPINE HOLIDAYS (2026 & 2027)
-// ============================================================================
-
-const DEFAULT_PH_HOLIDAYS = {
-  '2026-01-01': "New Year's Day",
-  '2026-02-17': 'Chinese New Year',
-  '2026-02-25': 'EDSA People Power Anniversary',
-  '2026-04-02': 'Maundy Thursday',
-  '2026-04-03': 'Good Friday',
-  '2026-04-04': 'Black Saturday',
-  '2026-04-09': 'Araw ng Kagitingan',
-  '2026-05-01': 'Labor Day',
-  '2026-06-12': 'Independence Day',
-  '2026-08-21': 'Ninoy Aquino Day',
-  '2026-08-31': 'National Heroes Day',
-  '2026-11-01': "All Saints' Day",
-  '2026-11-02': "All Souls' Day",
-  '2026-11-30': 'Bonifacio Day',
-  '2026-12-08': 'Feast of the Immaculate Conception',
-  '2026-12-24': 'Christmas Eve',
-  '2026-12-25': 'Christmas Day',
-  '2026-12-30': 'Rizal Day',
-  '2026-12-31': 'Last Day of the Year',
-  '2027-01-01': "New Year's Day",
-  '2027-02-06': 'Chinese New Year',
-  '2027-03-25': 'Maundy Thursday',
-  '2027-03-26': 'Good Friday',
-  '2027-03-27': 'Black Saturday',
-  '2027-04-09': 'Araw ng Kagitingan',
-  '2027-05-01': 'Labor Day',
-  '2027-06-12': 'Independence Day',
-  '2027-08-21': 'Ninoy Aquino Day',
-  '2027-08-30': 'National Heroes Day',
-  '2027-11-01': "All Saints' Day",
-  '2027-11-30': 'Bonifacio Day',
-  '2027-12-08': 'Feast of the Immaculate Conception',
-  '2027-12-25': 'Christmas Day',
-  '2027-12-30': 'Rizal Day'
-};
-
-// ============================================================================
-// 8. OFFICIAL FAQS DATA
-// ============================================================================
-
-const FAQS_DATA = [
-  {
-    question: 'What is included in the Room-Only Staycation Bookings (₱2,000–₱6,000)?',
-    answer:
-      'Every 22-hour Room-Only Staycation (The Cozy Den, The Vista, The Hideout, and The River Loft) includes air-conditioned room accommodation from 2:00 PM to 12:00 NN, one Silog breakfast for each registered guest, swimming pool access, kitchen access and free use of LPG for cooking, riverside & common area access, Wi-Fi, parking space, and karaoke use until 10:00 PM.'
-  },
-  {
-    question: 'Can we book a Staycation Room on Weekends or Holidays?',
-    answer:
-      'Yes! Weekday (Mon–Thu) rates start at ₱2,000–₱5,000, while Weekend/Holiday rates are ₱2,500–₱6,000. Per resort policy, weekday and non-holiday room-only bookings may be accepted in advance, while weekend and holiday room-only bookings open 7 days before the target date if no whole-resort booking has been confirmed.'
-  },
-  {
-    question: 'How many days can we select on the calendar for Overnight / Staycation bookings?',
-    answer:
-      'You can select multiple consecutive dates on our calendar up to a maximum of 3 Days & 2 Nights (2 nights total). Selecting 2 dates gives you a 2 Days & 1 Night (22-hour) stay, while selecting 3 dates gives you a 3 Days & 2 Nights stay. The Rate Calculator automatically computes each night’s weekday or weekend/holiday rate.'
-  },
-  {
-    question: 'How much are extra guests and extra mattresses?',
-    answer:
-      'For Room-Only Staycations, additional guests beyond the base capacity are charged ₱300 per person per stay (already inclusive of swimming pool access and Silog breakfast). Extra single mattresses are ₱150/night and extra double mattresses are ₱200/night, subject to availability.'
-  },
-  {
-    question: 'What is your Down Payment, Cancellation, and Rescheduling policy?',
-    answer:
-      'A 50% down payment (DP) is required to secure your reservation, and the remaining 50% balance is payable upon arrival before room use. Down payments are generally non-refundable for guest-initiated cancellations or no-shows. One reschedule is allowed if requested at least 7 days before check-in, subject to availability and management approval.'
-  }
-];
-
-// ============================================================================
-// 9. HELPER FUNCTIONS
-// ============================================================================
-
-const formatPHP = (amount) => {
-  if (amount === null || amount === undefined) return '—';
-  return `₱${amount.toLocaleString('en-PH')}`;
-};
-
-const toDateKey = (year, month, day) => {
-  const m = String(month + 1).padStart(2, '0');
-  const d = String(day).padStart(2, '0');
-  return `${year}-${m}-${d}`;
-};
-
-const parseDateKey = (dateKey) => {
-  const [y, m, d] = dateKey.split('-').map(Number);
-  return new Date(y, m - 1, d);
-};
-
-const addDaysToKey = (dateKey, daysToAdd) => {
-  const d = parseDateKey(dateKey);
-  d.setDate(d.getDate() + daysToAdd);
-  return toDateKey(d.getFullYear(), d.getMonth(), d.getDate());
-};
-
-const diffDaysBetweenKeys = (startKey, endKey) => {
-  const start = parseDateKey(startKey);
-  const end = parseDateKey(endKey);
-  return Math.round((end - start) / (1000 * 60 * 60 * 24));
-};
-
-const formatReadableDate = (dateKey) => {
-  if (!dateKey) return '';
-  const date = parseDateKey(dateKey);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
-};
-
-const formatSlashDate = (dateKey) => {
-  if (!dateKey) return '';
-  const [y, m, d] = dateKey.split('-').map(Number);
-  return `${m}/${d}/${y}`;
-};
-
-const getDayRateInfo = (dateKey, pkg, customHolidays) => {
-  const dateObj = parseDateKey(dateKey);
-  const dayOfWeek = dateObj.getDay(); // 0 = Sun, 1 = Mon ... 4 = Thu, 5 = Fri, 6 = Sat
-  const isWeekend = dayOfWeek === 0 || dayOfWeek === 5 || dayOfWeek === 6;
-  const holidayName = DEFAULT_PH_HOLIDAYS[dateKey] || customHolidays[dateKey] || null;
-  const isHoliday = Boolean(holidayName);
-  const isPeakDay = isWeekend || isHoliday;
-
-  if (pkg.isEvent) {
-    return {
-      available: true,
-      isEvent: true,
-      rate: 0,
-      rateLabel: 'Inquire Rate',
-      tierLabel: isHoliday
-        ? `Holiday Event (${holidayName})`
-        : isWeekend
-        ? 'Weekend Event (Fri–Sun)'
-        : 'Weekday Event (Mon–Thu)',
-      isPeakDay,
-      isWeekend,
-      isHoliday,
-      holidayName
-    };
-  }
-
-  const applicableRate = isPeakDay ? pkg.weekendRate : pkg.weekdayRate;
-  return {
-    available: true,
-    rate: applicableRate,
-    rateLabel: formatPHP(applicableRate),
-    tierLabel: isHoliday
-      ? `Holiday Rate (${holidayName})`
-      : isWeekend
-      ? 'Weekend Rate (Fri–Sun)'
-      : 'Weekday Rate (Mon–Thu)',
-    isPeakDay,
-    isWeekend,
-    isHoliday,
-    holidayName
-  };
-};
-
-// Build a single month grid (Monday-first like the screenshot: Lu Ma Mi H B S Li / Mo Tu We Th Fr Sa Su)
-const buildMonthDaysMondayFirst = (year, month, selectedPackage, customHolidays, today) => {
-  const jsFirstDay = new Date(year, month, 1).getDay(); // 0=Sun..6=Sat
-  const mondayFirstOffset = (jsFirstDay + 6) % 7; // 0=Mon..6=Sun
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const cells = [];
-
-  for (let i = 0; i < mondayFirstOffset; i++) {
-    cells.push(null);
-  }
-
-  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dateKey = toDateKey(year, month, day);
-    const dateObj = new Date(year, month, day);
-    const isPast = dateObj < todayMidnight;
-    const rateInfo = getDayRateInfo(dateKey, selectedPackage, customHolidays);
-
-    cells.push({
-      day,
-      dateKey,
-      isPast,
-      ...rateInfo
-    });
-  }
-
-  return cells;
-};
-
-const RESORT_SYSTEM_PROMPT = `
-You are the official AI Concierge for "The Forts Riverside Private Resort" (website: https://theforts.pages.dev/), located in Bustos, Bulacan near the scenic Angat River and Beltran Street.
-Be warm, helpful, concise, and polite. Format prices in Philippine Pesos (₱). Only answer based on the official resort facts below:
-
-1. TWO MAIN WAYS TO BOOK OVERNIGHT / DAY STAYS + EVENTS:
-   A) ROOM-ONLY STAYCATION BOOKINGS (22-Hour Stay: 2:00 PM Check-in to 12:00 NN Check-out):
-      - THE COZY DEN (Cozy Room, 2–4 Guests): ₱2,000 Weekday (Mon–Thu) | ₱2,500 Weekend/Holiday. Air-conditioned, 4 single floor mattresses, private bathroom.
-      - THE VISTA (Overlooking Room, 2–4 Guests): ₱2,800 Weekday | ₱3,300 Weekend/Holiday. Air-conditioned, 2 double beds, sofa, private bathroom. Extra mattress allowed.
-      - THE HIDEOUT (Small Barkada Room, 4–6 Guests): ₱3,000 Weekday | ₱3,500 Weekend/Holiday. Air-conditioned, 2 single bunk beds, 1 double bed, shared bathroom.
-      - THE RIVER LOFT (Barkada Room, 10–15 Guests): ₱5,000 Weekday | ₱6,000 Weekend/Holiday. Air-conditioned, 2 double bunk beds, 3 single bunk beds, private bathroom. Extra mattress allowed.
-      * Staycation Inclusions: 22-hour room stay, 1 free Silog breakfast per registered guest, swimming pool access, kitchen access & FREE use of LPG for cooking, riverside & common area access, Wi-Fi, parking, and karaoke use (until 10:00 PM).
-      * Shared Access Note: Room-only bookings do not grant exclusive use of the entire resort. Weekday/non-holiday bookings are accepted in advance; weekend/holiday room-only bookings open 7 days before the target date if no whole-resort booking is confirmed.
-      * Staycation Extra Charges: Extra guest is ₱300/person per stay (includes pool access & Silog breakfast). Extra single mattress is ₱150/night; extra double mattress is ₱200/night (subject to availability).
-
-   B) EXCLUSIVE RESORT BOOKINGS (Private access to pools, riverside balcony, function space, kitchen, court & included rooms):
-      - Day Tour (9 Hrs, 8:00 AM – 5:00 PM, up to 30 pax): ₱4,500 Weekday | ₱5,000 Fri–Sun/Holiday. Includes 1 complimentary room (The Vista). Excess guest: ₱150/head.
-      - Night Tour (11 Hrs, 7:00 PM – 6:00 AM, up to 30 pax): ₱6,999 Weekday | ₱7,500 Fri–Sun/Holiday. Includes 1 complimentary room (The Vista). Excess guest: ₱200/head.
-      - Family Overnight Exclusive (22 Hrs, 2:00 PM – 12:00 NN, 4–8 pax): ₱7,999 Weekday | ₱8,999 Fri–Sun/Holiday.
-      - Barkada Overnight Exclusive (22 Hrs, 9–15 pax): ₱10,999 Weekday | ₱11,999 Fri–Sun/Holiday.
-      - Mid Group Overnight Exclusive (22 Hrs, 16–20 pax): ₱13,999 Weekday | ₱14,999 Fri–Sun/Holiday (Includes The River Loft & The Hideout).
-      - Whole Resort Package (22 Hrs, up to 30 pax): ₱15,999 Weekday | ₱16,499 Fri–Sun/Holiday (Includes ALL 4 air-conditioned rooms).
-      * Resort Package Add-ons: Excess overnight guest is ₱200/head. Optional Kitchen LPG use is +₱400. Extended hours: ₱500/hr (max 2 hours, subject to availability).
-
-   C) MULTI-DAY OVERNIGHT LIMIT:
-      - Overnight and Staycation bookings can be selected for multiple consecutive dates up to a MAXIMUM of 3 Days & 2 Nights (2 nights total).
-
-   D) EVENTS BOOKING:
-      - Birthdays, family reunions, and corporate team-building events are available with custom quotes.
-
-2. HOUSE RULES & POLICIES:
-   - Karaoke & Quiet Hours: Karaoke ends strictly at 10:00 PM. Keep noise reasonable afterward.
-   - Swimming Pool: Proper swim attire required. No food, drinks, glassware, or pets in the pool. Supervise children at all times.
-   - Food & Kitchen: Outside food/drinks allowed with NO corkage fee. Clean-As-You-Go (CLAYGO) and turn off LPG after cooking.
-   - Smoking & Pets: Strictly no smoking inside air-conditioned rooms. Well-behaved pets are welcome on the grounds (keep off beds and out of the pool).
-   - Payment, Cancellation & Rescheduling: 50% down payment (DP) is required to secure a booking; remaining 50% balance is paid upon arrival before room use. Down payment is non-refundable for guest-initiated cancellations or no-shows. One reschedule is allowed if requested at least 7 days before check-in (subject to availability).
-
-3. LOCATION, CONTACT & HOW TO BOOK:
-   - Location: Bustos, Bulacan, near Angat River and Beltran Street (searchable on Google Maps & Waze as "The Forts Riverside Private Resort").
-   - Contact Info: Mobile: +63 960 503 8082 | Facebook: https://www.facebook.com/theforts.ph/ | Instagram: @theforts.ph
-   - How to Book: Use the 3-Step Rate Calculator on the website to compute the exact rate, then click "Reserve Selected Dates" or submit via the official Google Form: https://forms.gle/STv73fxDoKJxDC4A7 or message us directly on Facebook or Instagram.
-`;
-
-const QUICK_CHAT_QUESTIONS = [
-  'Staycation room rates?',
-  'What is included in Staycation?',
-  'Exclusive resort packages?',
-  'Payment & cancellation rules?'
-];
-
 function getLocalFallbackAnswer(userText) {
   const q = userText.toLowerCase();
 
@@ -1285,20 +133,6 @@ function getLocalFallbackAnswer(userText) {
   return `Hi! I can help you with Staycation Room rates (₱2,000–₱6,000 with free Silog breakfast & LPG), Exclusive Resort Packages (₱4,500–₱16,499), check-in times, extra mattresses, or booking policies. What would you like to know?`;
 }
 
-const FacebookIcon = ({ className }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-  </svg>
-);
-
-const InstagramIcon = ({ className }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-  </svg>
-);
-
 function FortsAIChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -1309,8 +143,6 @@ function FortsAIChatbot() {
       text: 'Hello! 👋 Welcome to The Forts Riverside Private Resort. Ask me anything about our Staycation Rooms, Exclusive Packages, inclusions, or house rules!'
     }
   ]);
-
-  const GEMINI_API_KEY = (import.meta.env?.VITE_GEMINI_API_KEY || '').trim();
 
   const sendMessage = async (customQuestion = null) => {
     const textToSend = (customQuestion ?? input).trim();
@@ -1540,8 +372,6 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeLightboxAmenity, setActiveLightboxAmenity] = useState(null);
 
-  const BOOKING_SCRIPT_URL = (import.meta.env?.VITE_BOOKING_SCRIPT_URL || '').trim();
-
   // Live Bookings from Google Sheets
   const [sheetBookings, setSheetBookings] = useState([]);
   const [loadingAvailability, setLoadingAvailability] = useState(true);
@@ -1629,6 +459,7 @@ export default function App() {
           message:
             'Your reservation hold has been recorded! Please complete your 50% down payment within 24 hours.'
         });
+        setSelectedDates([]); // Unhighlights the dates just booked
         // Immediately refresh calendar availability so dates cross out right away
         fetchSheetAvailability();
       } else {
@@ -1800,7 +631,7 @@ export default function App() {
       if (!b.occupiedDates || !Array.isArray(b.occupiedDates)) continue;
       
       // Check if the current calendar cell (cleanTargetDate) is inside this booking's blocked dates
-      const isDateBlocked = b.occupiedDates.some(d => d.trim() === cleanTargetDate);
+      const isDateBlocked = b.occupiedDates.some((d) => d.trim() === cleanTargetDate);
       if (!isDateBlocked) continue;
 
       const existingCategory = String(b.category).trim();
@@ -1912,7 +743,24 @@ export default function App() {
     setSelectedDates([]);
   };
 
-  // Rate Calculator Computation
+  // Automatically clears selectedDates if any selected night is already Reserved/Booked
+  useEffect(() => {
+    if (!sheetBookings.length || !selectedDates.length) return;
+
+    const nightsCount = selectedPackage.isOvernightMultiDay
+      ? Math.max(1, selectedDates.length - 1)
+      : 1;
+
+    const hasBlockedNight = Array.from({ length: nightsCount }, (_, i) =>
+      addDaysToKey(selectedDates[0], i)
+    ).some((dateKey) => getDateBookingStatus(dateKey, selectedPackage).isBlocked);
+
+    if (hasBlockedNight) {
+      setSelectedDates([]);
+    }
+  }, [sheetBookings, selectedPackage, selectedDates]);
+
+  // Rate Calculator Computation (Updated to also check sheetBookings)
   const priceBreakdown = useMemo(() => {
     if (!selectedDates.length) {
       return {
@@ -1942,11 +790,17 @@ export default function App() {
       nightKeysToCharge.push(addDaysToKey(selectedDates[0], i));
     }
 
-    const nightlyDetails = nightKeysToCharge.map((k, idx) => ({
-      nightNumber: idx + 1,
-      dateKey: k,
-      ...getDayRateInfo(k, selectedPackage, customHolidays)
-    }));
+    const nightlyDetails = nightKeysToCharge.map((k, idx) => {
+      const rateInfo = getDayRateInfo(k, selectedPackage, customHolidays);
+      const bookingStatus = getDateBookingStatus(k, selectedPackage);
+      return {
+        nightNumber: idx + 1,
+        dateKey: k,
+        ...rateInfo,
+        isBlocked: bookingStatus.isBlocked,
+        available: rateInfo.available && !bookingStatus.isBlocked
+      };
+    });
 
     const allAvailable = nightlyDetails.every((n) => n.available);
     const hasWeekendStaycationWarning =
@@ -2001,7 +855,8 @@ export default function App() {
     extraDoubleMattresses,
     includeGasFee,
     extendedHours,
-    customHolidays
+    customHolidays,
+    sheetBookings
   ]);
 
   const checkInDateKey = selectedDates[0] || '';
@@ -2366,8 +1221,8 @@ export default function App() {
               </h1>
 
               <p className="mt-6 text-base sm:text-lg text-slate-100 leading-relaxed max-w-2xl">
-                Unwind by the scenic Angat River. Book a <strong>22-Hour Room-Only Staycation</strong>{' '} or reserve the{' '}
-                <strong>Whole Resort Exclusively</strong> for your family and barkada.
+                Unwind by the scenic Angat River. Book a <strong>22-Hour Room-Only Staycation</strong>{' '}
+                or reserve the <strong>Whole Resort Exclusively</strong> for your family and barkada.
               </p>
 
               <div className="mt-20 flex flex-wrap items-center gap-3.5">
@@ -2388,8 +1243,6 @@ export default function App() {
               </div>
             </div>
           </div>
-
-          
         </div>
       </section>
 
@@ -2873,7 +1726,6 @@ export default function App() {
                     >
                       Clear dates
                     </button>
-                    
                   </div>
                 </div>
               </div>
@@ -2987,8 +1839,7 @@ export default function App() {
                               Total Registered Guests
                             </label>
                             <p className="text-xs text-slate-500">
-                              Base: {selectedPackage.paxLabel} 
-          
+                              Base: {selectedPackage.paxLabel}
                             </p>
                           </div>
 
@@ -3023,7 +1874,6 @@ export default function App() {
                                 <span className="text-xs sm:text-sm font-bold text-[#0B3553]">
                                   Extra Single Mattress (+₱150/night)
                                 </span>
-                                
                               </div>
                               <div className="flex items-center gap-2">
                                 <button
@@ -3264,7 +2114,6 @@ export default function App() {
                       <Users className="w-3.5 h-3.5 text-[#F5EFE6]" />
                       {room.capacity}
                     </span>
-                    
                   </div>
                 </div>
 
@@ -3821,8 +2670,6 @@ export default function App() {
 
             <div className="lg:col-span-7">
               <div className="rounded-2xl overflow-hidden border border-[#E6DBC8] shadow-xs bg-[#FAF8F5] relative h-72 sm:h-80 flex flex-col justify-between p-6">
-                
-                {/* ---> THIS SVG IS THE MISSING MAP BACKGROUND <--- */}
                 <svg
                   className="absolute inset-0 w-full h-full object-cover opacity-90"
                   viewBox="0 0 800 500"
@@ -3937,15 +2784,14 @@ export default function App() {
       <footer className="bg-[#0B3553] text-slate-200 py-14 border-t-4 border-[#C8AD7F]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-10 border-b border-white/15">
-            
             {/* COLUMN 1: Brand & Contact Info */}
             <div className="md:col-span-5 space-y-6">
               {/* Logo and Title */}
               <div className="flex items-center justify-center md:justify-start gap-3.5">
-                <img 
-                  src="/logo.png" 
-                  alt="The Forts Logo" 
-                  className="w-12 h-12 rounded-full object-contain shadow-sm bg-[#FAF8F5]" 
+                <img
+                  src="/logo.png"
+                  alt="The Forts Logo"
+                  className="w-12 h-12 rounded-full object-contain shadow-sm bg-[#FAF8F5]"
                 />
                 <div className="text-left">
                   <span className="block text-2xl font-brand-serif font-bold text-white leading-none">
@@ -3956,7 +2802,7 @@ export default function App() {
                   </span>
                 </div>
               </div>
-              
+
               <p className="text-xs text-slate-400 max-w-sm leading-relaxed text-center md:text-left">
                 A peaceful riverside haven designed for relaxation, fun, and unforgettable memories.
               </p>
@@ -4153,7 +2999,7 @@ export default function App() {
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                   Your dates are now crossed out on our calendar. To officially lock in your booking, please settle the <strong>50% Down Payment ({formatPHP(priceBreakdown.downPayment50)})</strong> within 24 hours.
                 </p>
-                
+
                 {/* PAYMENT DETAILS & QR BOX */}
                 <div className="p-5 rounded-xl bg-[#FAF8F5] border border-[#E6DBC8] text-left text-xs sm:text-sm shadow-inner">
                   <p className="font-bold text-[#0B3553] border-b border-[#E6DBC8] pb-2 mb-3">
@@ -4161,11 +3007,13 @@ export default function App() {
                   </p>
                   <div className="flex flex-col sm:flex-row gap-5 items-center sm:items-start">
                     {/* GCash QR Image from Public Folder */}
-                    <img 
-                      src="/gcash-qr.png" 
-                      alt="GCash QR Code" 
-                      className="w-32 h-32 object-cover rounded-lg shadow-sm border border-slate-200 bg-white p-1" 
-                      onError={(e) => { e.target.style.display = 'none'; }} // Hides if image is missing
+                    <img
+                      src="/gcash-qr.png"
+                      alt="GCash QR Code"
+                      className="w-32 h-32 object-cover rounded-lg shadow-sm border border-slate-200 bg-white p-1"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
                     />
                     <div className="space-y-2 text-slate-600 w-full">
                       <p><strong>GCash:</strong> 0960 503 8082 (The Forts)</p>
