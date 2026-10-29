@@ -15,6 +15,7 @@ import {
   ChevronUp,
   Clock,
   Compass,
+  Copy,
   CreditCard,
   ExternalLink,
   FileText,
@@ -153,7 +154,7 @@ function getLocalFallbackAnswer(userText) {
     return `Booking & House Policies:\n• 50% down payment is required to lock in your dates; 50% balance is paid upon arrival.\n• Down payments are non-refundable for cancellations/no-shows.\n• 1 reschedule is allowed if requested at least 7 days before check-in.\n• Karaoke is until 10:00 PM, no smoking inside rooms, and no corkage fee on food!`;
   }
   if (q.includes('book') || q.includes('reserve') || q.includes('location') || q.includes('where')) {
-    return `We are located beside the scenic Angat River near Beltran Street (search "The Forts Riverside Private Resort" on Google Maps/Waze).\n\nTo book, select your dates in our 3-Step Rate Calculator on this page and click "Reserve Selected Dates", or fill out our Google Form: https://forms.gle/STv73fxDoKJxDC4A7`;
+    return `We are located beside the scenic Angat River near Beltran Street (search "The Forts Riverside Private Resort" on Google Maps/Waze).\n\nTo book or request an event quote, select your dates in our 3-Step Rate Calculator on this page and click "Reserve Selected Dates"!`;
   }
 
   return `Hi! I can help you with Staycation Room rates (₱2,000–₱6,000 with free Silog breakfast & LPG), Exclusive Resort Packages (₱4,500–₱16,499), check-in times, extra mattresses, or booking policies. What would you like to know?`;
@@ -283,7 +284,7 @@ function FortsAIChatbot() {
   return (
     <div className="fixed bottom-5 right-5 z-50">
       {isOpen ? (
-        <div className="w-[340px] sm:w-[380px] h-[510px] bg-white rounded-3xl border border-[#E6DBC8] shadow-2xl flex flex-col overflow-hidden">
+        <div className="w-[340px] sm:w-[380px] h-[510px] bg-white rounded-3xl border border-[#E6DBC8] shadow-2xl flex flex-col overflow-hidden animate-modal-pop origin-bottom-right">
           <div className="p-4 bg-[#0B3553] text-white border-b-2 border-[#C8AD7F] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-full bg-[#F5EFE6] text-[#0B3553] flex items-center justify-center font-bold shadow-xs">
@@ -300,7 +301,7 @@ function FortsAIChatbot() {
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all cursor-pointer"
               aria-label="Close Chat"
             >
               <X className="w-4 h-4" />
@@ -311,7 +312,9 @@ function FortsAIChatbot() {
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex animate-step-enter ${
+                  msg.role === 'user' ? 'justify-end' : 'justify-start'
+                }`}
               >
                 <div
                   className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm whitespace-pre-line leading-relaxed ${
@@ -326,7 +329,7 @@ function FortsAIChatbot() {
             ))}
 
             {isLoading && (
-              <div className="flex justify-start">
+              <div className="flex justify-start animate-fade-in">
                 <div className="bg-white border border-[#E6DBC8] text-slate-500 rounded-2xl rounded-bl-xs px-3.5 py-2 text-xs italic">
                   Typing a reply...
                 </div>
@@ -339,7 +342,7 @@ function FortsAIChatbot() {
                   key={q}
                   type="button"
                   onClick={() => sendMessage(q)}
-                  className="text-[11px] font-semibold bg-[#F5EFE6] hover:bg-[#ebe1d1] text-[#0B3553] border border-[#E6DBC8] px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+                  className="text-[11px] font-semibold bg-[#F5EFE6] hover:bg-[#ebe1d1] active:scale-95 text-[#0B3553] border border-[#E6DBC8] px-2.5 py-1 rounded-full transition-all cursor-pointer"
                 >
                   {q}
                 </button>
@@ -359,12 +362,12 @@ function FortsAIChatbot() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about rooms, rates, or rules..."
-              className="flex-1 text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#0B3553]"
+              className="flex-1 text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#0B3553] transition-colors"
             />
             <button
               type="submit"
               disabled={!input.trim() || isLoading}
-              className="p-2.5 rounded-xl bg-[#0B3553] hover:bg-[#16486B] disabled:bg-slate-200 text-white transition-colors cursor-pointer"
+              className="p-2.5 rounded-xl bg-[#0B3553] hover:bg-[#16486B] active:scale-95 disabled:bg-slate-200 text-white transition-all cursor-pointer"
               aria-label="Send Message"
             >
               <Send className="w-4 h-4" />
@@ -375,7 +378,7 @@ function FortsAIChatbot() {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2.5 bg-[#0B3553] hover:bg-[#16486B] text-white font-bold text-xs sm:text-sm px-4 py-3.5 rounded-full shadow-xl border-2 border-[#C8AD7F] transition-transform hover:scale-105 cursor-pointer"
+          className="flex items-center gap-2.5 bg-[#0B3553] hover:bg-[#16486B] active:scale-95 text-white font-bold text-xs sm:text-sm px-4 py-3.5 rounded-full shadow-xl border-2 border-[#C8AD7F] transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 cursor-pointer"
         >
           <MessageCircle className="w-5 h-5 text-[#F5EFE6]" />
           <span>Ask AI Concierge</span>
@@ -402,6 +405,17 @@ export default function App() {
   const [paymentRef, setPaymentRef] = useState('');
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
   const [bookingSubmitResult, setBookingSubmitResult] = useState(null);
+
+  // Copied Payment Number State (Placed properly at the top of App!)
+  const [copiedPayment, setCopiedPayment] = useState(null);
+
+  const handleCopyPayment = (text, type) => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text);
+      setCopiedPayment(type);
+      setTimeout(() => setCopiedPayment(null), 2000);
+    }
+  };
 
   // Fetch live availability from Google Sheets
   const fetchSheetAvailability = async () => {
@@ -439,6 +453,9 @@ export default function App() {
       ? priceBreakdown.nightlyDetails.map((n) => n.dateKey)
       : [checkInDateKey];
 
+    const savedDownPayment50 = priceBreakdown.downPayment50;
+    const isEventBooking = Boolean(selectedPackage.isEvent);
+
     const payload = {
       category: selectedBookingType,
       packageId: selectedPackage.id,
@@ -450,13 +467,14 @@ export default function App() {
       guestEmail: guestEmail.trim(),
       guestPhone: guestContact.trim(),
       guestCount: guestCount,
-      totalRate: priceBreakdown.total,
-      downPayment50: priceBreakdown.downPayment50,
+      totalRate: isEventBooking ? 0 : priceBreakdown.total,
+      downPayment50: isEventBooking ? 0 : savedDownPayment50,
       notes: [
+        isEventBooking ? `Schedule: ${eventTimePreference}` : '',
         extraSingleMattresses > 0 ? `${extraSingleMattresses}x Single Mattress` : '',
         extraDoubleMattresses > 0 ? `${extraDoubleMattresses}x Double Mattress` : '',
-        includeGasFee && !selectedPackage.gasIncluded ? 'Add LPG (+₱400)' : '',
-        paymentRef ? `GCash/Bank Ref: ${paymentRef}` : '',
+        includeGasFee && !selectedPackage.gasIncluded && !isEventBooking ? 'Add LPG (+₱400)' : '',
+        paymentRef && !isEventBooking ? `GCash/Bank Ref: ${paymentRef}` : '',
         guestNotes
       ]
         .filter(Boolean)
@@ -475,8 +493,11 @@ export default function App() {
         setBookingSubmitResult({
           status: 'success',
           bookingId: result.bookingId,
-          message:
-            'Your reservation hold has been recorded! Please complete your 50% down payment within 24 hours.'
+          isEvent: isEventBooking,
+          downPayment50: savedDownPayment50,
+          message: isEventBooking
+            ? 'Your event inquiry has been recorded! Please coordinate with us to finalize your custom quotation.'
+            : 'Your reservation hold has been recorded! Please complete your 50% down payment within 24 hours.'
         });
         setSelectedDates([]);
         fetchSheetAvailability();
@@ -628,7 +649,7 @@ export default function App() {
     const cleanTargetDate = dateKey.trim();
 
     for (const b of sheetBookings) {
-      if (b.status !== 'Reserved' && b.status !== 'Booked') continue;
+      if (b.status !== 'Reserved' && b.status !== 'Booked' && b.status !== 'Inquiry') continue;
       if (!b.occupiedDates || !Array.isArray(b.occupiedDates)) continue;
 
       const isDateBlocked = b.occupiedDates.some((d) => d.trim() === cleanTargetDate);
@@ -980,7 +1001,7 @@ export default function App() {
               >
                 {isSelected && !isSingleSelection && (
                   <div
-                    className={`absolute inset-y-0.5 bg-[#F5EFE6] ${
+                    className={`absolute inset-y-0.5 bg-[#F5EFE6] transition-all duration-300 ${
                       isStart
                         ? 'left-1/2 right-0'
                         : isEnd
@@ -1001,16 +1022,16 @@ export default function App() {
                       ? `${dayItem.holidayName} (Holiday Rate Applies)`
                       : undefined
                   }
-                  className={`relative z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm transition-all select-none ${
+                  className={`relative z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm transition-all duration-200 select-none ${
                     dayItem.isPast
                       ? 'text-slate-300 line-through cursor-not-allowed font-normal'
                       : dayItem.isBlocked
                       ? 'bg-rose-50 text-rose-300 line-through cursor-not-allowed font-normal'
                       : isStart || isEnd
-                      ? 'bg-[#0B3553] text-white font-bold shadow-md ring-2 ring-[#C8AD7F] cursor-pointer scale-[1.03]'
+                      ? 'bg-[#0B3553] text-white font-bold shadow-md ring-2 ring-[#C8AD7F] cursor-pointer scale-105'
                       : isMiddle
                       ? 'bg-[#0B3553]/15 text-[#0B3553] font-bold cursor-pointer'
-                      : 'hover:border hover:border-[#0B3553] text-slate-700 font-semibold cursor-pointer'
+                      : 'hover:border hover:border-[#0B3553] hover:scale-105 active:scale-95 text-slate-700 font-semibold cursor-pointer'
                   }`}
                 >
                   {dayItem.day}
@@ -1030,8 +1051,52 @@ export default function App() {
     >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        html {
+          scroll-behavior: smooth;
+        }
         .font-brand-serif {
           font-family: 'Cormorant Garamond', Georgia, serif;
+        }
+        @keyframes fadeSlideUp {
+          from {
+            opacity: 0;
+            transform: translateY(14px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes modalPop {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        @keyframes backdropFade {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes successPop {
+          0% { transform: scale(0.5); opacity: 0; }
+          70% { transform: scale(1.12); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-step-enter {
+          animation: fadeSlideUp 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-modal-pop {
+          animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-fade-in {
+          animation: backdropFade 0.22s ease-out forwards;
+        }
+        .animate-success-pop {
+          animation: successPop 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
       `}</style>
 
@@ -1041,7 +1106,7 @@ export default function App() {
       <div className="bg-[#0B3553] text-white text-xs sm:text-sm py-2.5 px-4 text-center border-b border-[#C8AD7F]/30">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
           <span className="inline-flex items-center gap-1.5 font-semibold text-[#F5EFE6]">
-            <Sparkles className="w-3.5 h-3.5 text-[#C8AD7F]" />
+            <Sparkles className="w-3.5 h-3.5 text-[#C8AD7F] animate-pulse" />
             Updated 2026 Staycation & Resort Rates!
           </span>
           <span className="hidden md:inline text-white/40">•</span>
@@ -1058,10 +1123,10 @@ export default function App() {
       {/* ==========================================
           STICKY NAVIGATION BAR
       ========================================== */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <a href="#home" className="flex items-center gap-3.5 group">
-            <FortsBrandLogo className="w-12 h-12 group-hover:scale-105 transition-transform" />
+            <FortsBrandLogo className="w-12 h-12 group-hover:scale-105 transition-transform duration-300" />
             <div>
               <span className="block text-2xl sm:text-[28px] font-brand-serif font-bold tracking-tight text-[#0B3553] leading-none">
                 The Forts Riverside
@@ -1093,7 +1158,7 @@ export default function App() {
           <div className="hidden sm:flex items-center gap-3">
             <a
               href="#booking-calendar"
-              className="inline-flex items-center gap-2 bg-[#0B3553] hover:bg-[#16486B] text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-xs hover:shadow transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 bg-[#0B3553] hover:bg-[#16486B] active:scale-95 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
             >
               <CalendarIcon className="w-4 h-4 text-[#F5EFE6]" />
               Book Now!
@@ -1103,7 +1168,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2.5 rounded-xl text-[#0B3553] hover:bg-[#F5EFE6]"
+            className="lg:hidden p-2.5 rounded-xl text-[#0B3553] hover:bg-[#F5EFE6] active:scale-95 transition-all"
             aria-label="Toggle Menu"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -1111,11 +1176,11 @@ export default function App() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-1.5">
+          <div className="lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-1.5 animate-step-enter">
             <a
               href="#home"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium"
+              className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium transition-colors"
             >
               Home
             </a>
@@ -1129,42 +1194,42 @@ export default function App() {
             <a
               href="#rooms"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium"
+              className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium transition-colors"
             >
               Rooms
             </a>
             <a
               href="#packages"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium"
+              className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium transition-colors"
             >
               Packages & Rates
             </a>
             <a
               href="#amenities"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium"
+              className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium transition-colors"
             >
               Amenities
             </a>
             <a
               href="#rules"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium"
+              className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium transition-colors"
             >
               Policies & Rules
             </a>
             <a
               href="#reviews"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium"
+              className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium transition-colors"
             >
               Guest Reviews
             </a>
             <a
               href="#faqs"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium"
+              className="block py-2 px-3 rounded-lg text-slate-700 hover:bg-[#F5EFE6] font-medium transition-colors"
             >
               FAQs
             </a>
@@ -1181,12 +1246,12 @@ export default function App() {
             localSrc={SITE_IMAGES.heroBackground}
             fallbackSrc={FALLBACK_IMAGES.heroBackground}
             alt="The Forts Riverside Resort Background"
-            className="w-full h-full object-cover scale-105"
+            className="w-full h-full object-cover scale-105 transition-transform duration-1000"
           />
         </div>
         <div className="absolute inset-0 bg-gradient-to-r from-[#0B3553]/25 via-[#0B3553]/20 to-[#0B3553]/15" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-22">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-22 animate-step-enter">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             <div className="lg:col-span-7">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#F5EFE6]/15 border border-[#E6DBC8]/40 text-[#F5EFE6] text-xs sm:text-sm font-medium mb-6 backdrop-blur-xs">
@@ -1209,14 +1274,14 @@ export default function App() {
               <div className="mt-20 flex flex-wrap items-center gap-3.5">
                 <a
                   href="#booking-calendar"
-                  className="inline-flex items-center gap-2.5 bg-[#F5EFE6] hover:bg-white text-[#0B3553] font-bold px-6 py-4 rounded-xl shadow-lg transition-all cursor-pointer text-sm sm:text-base"
+                  className="inline-flex items-center gap-2.5 bg-[#F5EFE6] hover:bg-white active:scale-95 text-[#0B3553] font-bold px-6 py-4 rounded-xl shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer text-sm sm:text-base"
                 >
                   <CalendarIcon className="w-5 h-5 text-[#0B3553]" />
                   See Availability
                 </a>
                 <a
                   href="#rooms"
-                  className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-4 rounded-xl border border-white/25 backdrop-blur-xs transition-all text-sm sm:text-base"
+                  className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 active:scale-95 text-white font-semibold px-6 py-4 rounded-xl border border-white/25 backdrop-blur-xs hover:-translate-y-0.5 transition-all duration-200 text-sm sm:text-base"
                 >
                   <BedDouble className="w-4 h-4 text-[#E6DBC8]" />
                   Explore our Rooms
@@ -1249,7 +1314,7 @@ export default function App() {
               RETRACTED MINIMAL ICON BAR (VISIBLE IN STEP 2 & STEP 3)
           ========================================== */}
           {activeWizardStep > 1 && (
-            <div className="mb-6 bg-[#FAF8F5] border border-[#E6DBC8] rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+            <div className="mb-6 bg-[#FAF8F5] border border-[#E6DBC8] rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs animate-step-enter">
               <div className="flex items-center gap-2.5 flex-wrap">
                 <button
                   type="button"
@@ -1273,7 +1338,7 @@ export default function App() {
                         type="button"
                         onClick={() => handleSelectBookingType(type.id)}
                         title={`${type.title} (${type.subtitle})`}
-                        className={`relative w-10 h-10 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                        className={`relative w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 active:scale-95 cursor-pointer ${
                           isSelected
                             ? 'bg-[#0B3553] text-white shadow-xs ring-2 ring-[#C8AD7F]'
                             : 'text-slate-500 hover:bg-[#F5EFE6] hover:text-[#0B3553]'
@@ -1292,7 +1357,7 @@ export default function App() {
               </div>
 
               {activeWizardStep === 3 && (
-                <div className="flex items-center gap-2.5 flex-wrap">
+                <div className="flex items-center gap-2.5 flex-wrap animate-fade-in">
                   <button
                     type="button"
                     onClick={() => setActiveWizardStep(2)}
@@ -1315,7 +1380,7 @@ export default function App() {
                           type="button"
                           onClick={() => handleSelectPackage(pkg.id)}
                           title={`${pkg.name} (${pkg.paxLabel})`}
-                          className={`h-9 px-2.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${
+                          className={`h-9 px-2.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer ${
                             isSelected
                               ? 'bg-[#1D5B8C] text-white shadow-2xs'
                               : 'text-slate-500 hover:bg-[#F5EFE6] hover:text-[#0B3553]'
@@ -1335,7 +1400,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setActiveWizardStep(1)}
-                className="text-xs font-semibold text-slate-500 hover:text-[#0B3553] flex items-center gap-1 ml-auto cursor-pointer"
+                className="text-xs font-semibold text-slate-500 hover:text-[#0B3553] active:scale-95 flex items-center gap-1 ml-auto transition-all cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span className="hidden md:inline">Reset</span>
@@ -1347,7 +1412,7 @@ export default function App() {
               STEP 1 EXPANDED VIEW (ONLY SHOWN WHEN activeWizardStep === 1)
           ========================================== */}
           {activeWizardStep === 1 && (
-            <div className="max-w-4xl mx-auto bg-[#FAF8F5] rounded-2xl p-6 sm:p-8 border border-[#E6DBC8] shadow-xs">
+            <div className="max-w-4xl mx-auto bg-[#FAF8F5] rounded-2xl p-6 sm:p-8 border border-[#E6DBC8] shadow-xs animate-step-enter">
               <div className="flex items-center gap-2.5 mb-5">
                 <span className="w-7 h-7 rounded-full bg-[#0B3553] text-white font-bold text-xs flex items-center justify-center">
                   1
@@ -1372,16 +1437,16 @@ export default function App() {
                       key={type.id}
                       type="button"
                       onClick={() => handleSelectBookingType(type.id)}
-                      className={`text-left p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between group ${
+                      className={`text-left p-5 rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1 active:scale-[0.99] cursor-pointer flex flex-col justify-between group ${
                         isSelected
                           ? 'bg-[#0B3553] text-white border-[#0B3553] shadow-md'
-                          : 'bg-white hover:bg-[#F5EFE6]/60 text-slate-800 border-[#E6DBC8] hover:border-[#0B3553]'
+                          : 'bg-white hover:bg-[#F5EFE6]/60 text-slate-800 border-[#E6DBC8] hover:border-[#0B3553] hover:shadow-md'
                       }`}
                     >
                       <div>
                         <div className="flex items-center justify-between gap-2 mb-3">
                           <div
-                            className={`p-3 rounded-xl ${
+                            className={`p-3 rounded-xl transition-transform duration-300 group-hover:scale-105 ${
                               isSelected
                                 ? 'bg-white/15 text-[#F5EFE6]'
                                 : 'bg-[#0B3553]/10 text-[#0B3553]'
@@ -1431,7 +1496,7 @@ export default function App() {
                         }`}
                       >
                         <span>Select & Continue</span>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </div>
                     </button>
                   );
@@ -1444,7 +1509,7 @@ export default function App() {
               STEP 2 EXPANDED VIEW (ONLY SHOWN WHEN activeWizardStep === 2)
           ========================================== */}
           {activeWizardStep === 2 && (
-            <div className="bg-[#FAF8F5] rounded-2xl p-5 sm:p-6 border border-[#E6DBC8] shadow-xs">
+            <div className="bg-[#FAF8F5] rounded-2xl p-5 sm:p-6 border border-[#E6DBC8] shadow-xs animate-step-enter">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[#E6DBC8]">
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-full bg-[#0B3553] text-white font-bold text-xs flex items-center justify-center shrink-0">
@@ -1474,10 +1539,10 @@ export default function App() {
                       key={pkg.id}
                       type="button"
                       onClick={() => handleSelectPackage(pkg.id)}
-                      className={`text-left p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                      className={`text-left p-4 rounded-xl border transition-all duration-300 hover:-translate-y-1 active:scale-[0.99] cursor-pointer flex flex-col justify-between group ${
                         isSelected
                           ? 'bg-[#0B3553] text-white border-[#0B3553] shadow-sm ring-2 ring-[#C8AD7F]'
-                          : 'bg-white hover:bg-[#F5EFE6]/50 text-slate-800 border-slate-200 hover:border-[#0B3553]/50'
+                          : 'bg-white hover:bg-[#F5EFE6]/50 text-slate-800 border-slate-200 hover:border-[#0B3553]/50 hover:shadow-md'
                       }`}
                     >
                       <div>
@@ -1532,7 +1597,7 @@ export default function App() {
                             {formatPHP(pkg.weekdayRate)} – {formatPHP(pkg.weekendRate)}
                           </span>
                         )}
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                       </div>
                     </button>
                   );
@@ -1546,7 +1611,7 @@ export default function App() {
               (SHOWN WHEN activeWizardStep === 3)
           ========================================== */}
           {activeWizardStep === 3 && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-step-enter">
               {/* LEFT 7 COLUMNS: AIRBNB SCREENSHOT-STYLE 2-MONTH CALENDAR CARD */}
               <div className="lg:col-span-7 bg-white rounded-3xl border border-[#E6DBC8] shadow-sm p-6 sm:p-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6">
@@ -1616,7 +1681,7 @@ export default function App() {
                 </div>
 
                 {dateLimitNotice && (
-                  <div className="mb-5 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium flex items-center justify-between gap-2">
+                  <div className="mb-5 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium flex items-center justify-between gap-2 animate-step-enter">
                     <div className="flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
                       <span>{dateLimitNotice}</span>
@@ -1638,7 +1703,7 @@ export default function App() {
                       <button
                         type="button"
                         onClick={goToPreviousMonth}
-                        className="p-1.5 rounded-full hover:bg-[#F5EFE6] text-[#0B3553] transition-colors cursor-pointer"
+                        className="p-1.5 rounded-full hover:bg-[#F5EFE6] active:scale-90 text-[#0B3553] transition-all cursor-pointer"
                         aria-label="Previous Month"
                       >
                         <ChevronLeft className="w-4 h-4" />
@@ -1650,7 +1715,7 @@ export default function App() {
                         <button
                           type="button"
                           onClick={goToNextMonth}
-                          className="p-1.5 rounded-full hover:bg-[#F5EFE6] text-[#0B3553] transition-colors cursor-pointer"
+                          className="p-1.5 rounded-full hover:bg-[#F5EFE6] active:scale-90 text-[#0B3553] transition-all cursor-pointer"
                           aria-label="Next Month"
                         >
                           <ChevronRight className="w-4 h-4" />
@@ -1670,7 +1735,7 @@ export default function App() {
                       <button
                         type="button"
                         onClick={goToNextMonth}
-                        className="p-1.5 rounded-full hover:bg-[#F5EFE6] text-[#0B3553] transition-colors cursor-pointer"
+                        className="p-1.5 rounded-full hover:bg-[#F5EFE6] active:scale-90 text-[#0B3553] transition-all cursor-pointer"
                         aria-label="Next Month"
                       >
                         <ChevronRight className="w-4 h-4" />
@@ -1725,7 +1790,7 @@ export default function App() {
 
                 <div className="p-5 sm:p-6 space-y-4">
                   {priceBreakdown.hasWeekendStaycationWarning && (
-                    <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5">
+                    <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5 animate-step-enter">
                       <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                       <div>
                         <strong className="block text-amber-950">
@@ -1751,7 +1816,7 @@ export default function App() {
                             <button
                               type="button"
                               onClick={() => setGuestCount(Math.max(10, guestCount - 5))}
-                              className="w-8 h-8 rounded-lg bg-[#F5EFE6] text-[#0B3553] flex items-center justify-center font-bold cursor-pointer"
+                              className="w-8 h-8 rounded-lg bg-[#F5EFE6] text-[#0B3553] active:scale-90 flex items-center justify-center font-bold transition-transform cursor-pointer"
                             >
                               -5
                             </button>
@@ -1761,7 +1826,7 @@ export default function App() {
                             <button
                               type="button"
                               onClick={() => setGuestCount(guestCount + 5)}
-                              className="w-8 h-8 rounded-lg bg-[#F5EFE6] text-[#0B3553] flex items-center justify-center font-bold cursor-pointer"
+                              className="w-8 h-8 rounded-lg bg-[#F5EFE6] text-[#0B3553] active:scale-90 flex items-center justify-center font-bold transition-transform cursor-pointer"
                             >
                               +5
                             </button>
@@ -1816,7 +1881,7 @@ export default function App() {
                             <button
                               type="button"
                               onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
-                              className="w-8 h-8 rounded-lg bg-white border border-[#E6DBC8] flex items-center justify-center hover:bg-[#F5EFE6] cursor-pointer"
+                              className="w-8 h-8 rounded-lg bg-white border border-[#E6DBC8] flex items-center justify-center hover:bg-[#F5EFE6] active:scale-90 transition-all cursor-pointer"
                               aria-label="Decrease guests"
                             >
                               <Minus className="w-4 h-4 text-[#0B3553]" />
@@ -1827,7 +1892,7 @@ export default function App() {
                             <button
                               type="button"
                               onClick={() => setGuestCount(guestCount + 1)}
-                              className="w-8 h-8 rounded-lg bg-white border border-[#E6DBC8] flex items-center justify-center hover:bg-[#F5EFE6] cursor-pointer"
+                              className="w-8 h-8 rounded-lg bg-white border border-[#E6DBC8] flex items-center justify-center hover:bg-[#F5EFE6] active:scale-90 transition-all cursor-pointer"
                               aria-label="Increase guests"
                             >
                               <Plus className="w-4 h-4 text-[#0B3553]" />
@@ -1849,7 +1914,7 @@ export default function App() {
                                   onClick={() =>
                                     setExtraSingleMattresses(Math.max(0, extraSingleMattresses - 1))
                                   }
-                                  className="w-7 h-7 rounded-lg bg-white border border-[#E6DBC8] flex items-center justify-center hover:bg-[#F5EFE6] cursor-pointer"
+                                  className="w-7 h-7 rounded-lg bg-white border border-[#E6DBC8] flex items-center justify-center hover:bg-[#F5EFE6] active:scale-90 transition-all cursor-pointer"
                                 >
                                   <Minus className="w-3.5 h-3.5 text-[#0B3553]" />
                                 </button>
@@ -1861,7 +1926,7 @@ export default function App() {
                                   onClick={() =>
                                     setExtraSingleMattresses(extraSingleMattresses + 1)
                                   }
-                                  className="w-7 h-7 rounded-lg bg-white border border-[#E6DBC8] flex items-center justify-center hover:bg-[#F5EFE6] cursor-pointer"
+                                  className="w-7 h-7 rounded-lg bg-white border border-[#E6DBC8] flex items-center justify-center hover:bg-[#F5EFE6] active:scale-90 transition-all cursor-pointer"
                                 >
                                   <Plus className="w-3.5 h-3.5 text-[#0B3553]" />
                                 </button>
@@ -1880,7 +1945,7 @@ export default function App() {
                                   onClick={() =>
                                     setExtraDoubleMattresses(Math.max(0, extraDoubleMattresses - 1))
                                   }
-                                  className="w-7 h-7 rounded-lg bg-white border border-[#E6DBC8] flex items-center justify-center hover:bg-[#F5EFE6] cursor-pointer"
+                                  className="w-7 h-7 rounded-lg bg-white border border-[#E6DBC8] flex items-center justify-center hover:bg-[#F5EFE6] active:scale-90 transition-all cursor-pointer"
                                 >
                                   <Minus className="w-3.5 h-3.5 text-[#0B3553]" />
                                 </button>
@@ -1892,7 +1957,7 @@ export default function App() {
                                   onClick={() =>
                                     setExtraDoubleMattresses(extraDoubleMattresses + 1)
                                   }
-                                  className="w-7 h-7 rounded-lg bg-white border border-[#E6DBC8] flex items-center justify-center hover:bg-[#F5EFE6] cursor-pointer"
+                                  className="w-7 h-7 rounded-lg bg-white border border-[#E6DBC8] flex items-center justify-center hover:bg-[#F5EFE6] active:scale-90 transition-all cursor-pointer"
                                 >
                                   <Plus className="w-3.5 h-3.5 text-[#0B3553]" />
                                 </button>
@@ -1922,7 +1987,7 @@ export default function App() {
                             <button
                               type="button"
                               onClick={() => setIncludeGasFee(!includeGasFee)}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all active:scale-95 cursor-pointer ${
                                 includeGasFee
                                   ? 'bg-[#0B3553] text-white border-[#0B3553]'
                                   : 'bg-white text-[#0B3553] border-[#E6DBC8] hover:bg-[#F5EFE6]'
@@ -1934,7 +1999,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-[#0B3553] text-white space-y-2">
+                      <div className="p-4 rounded-2xl bg-[#0B3553] text-white space-y-2 transition-all">
                         <div className="flex items-center justify-between pb-1 border-b border-white/15">
                           <span className="text-xs font-bold uppercase tracking-wider text-[#E6DBC8]">
                             Computed Rate Breakdown
@@ -2023,9 +2088,9 @@ export default function App() {
                     type="button"
                     disabled={!priceBreakdown.available}
                     onClick={() => setBookingModalOpen(true)}
-                    className={`w-full py-3.5 px-5 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-sm transition-all ${
+                    className={`w-full py-3.5 px-5 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-sm transition-all duration-200 ${
                       priceBreakdown.available
-                        ? 'bg-[#1D5B8C] hover:bg-[#0B3553] text-white cursor-pointer'
+                        ? 'bg-[#1D5B8C] hover:bg-[#0B3553] hover:-translate-y-0.5 active:scale-98 text-white cursor-pointer'
                         : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                     }`}
                   >
@@ -2065,7 +2130,7 @@ export default function App() {
             {ROOMS_DATA.map((room) => (
               <div
                 key={room.id}
-                className="bg-white rounded-2xl border border-[#E6DBC8] overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col"
+                className="bg-white rounded-2xl border border-[#E6DBC8] overflow-hidden shadow-2xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col"
               >
                 <div className="relative h-64 w-full overflow-hidden bg-slate-100">
                   <SmartResortImage
@@ -2181,7 +2246,7 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
-                    <tr>
+                    <tr className="hover:bg-[#FAF8F5] transition-colors">
                       <td className="py-3.5 px-4 font-bold text-[#0B3553]">
                         THE COZY DEN <span className="text-slate-500 font-normal">(2–4 pax)</span>
                       </td>
@@ -2197,7 +2262,7 @@ export default function App() {
                         </button>
                       </td>
                     </tr>
-                    <tr>
+                    <tr className="hover:bg-[#FAF8F5] transition-colors">
                       <td className="py-3.5 px-4 font-bold text-[#0B3553]">
                         THE VISTA <span className="text-slate-500 font-normal">(2–4 pax)</span>
                       </td>
@@ -2213,7 +2278,7 @@ export default function App() {
                         </button>
                       </td>
                     </tr>
-                    <tr>
+                    <tr className="hover:bg-[#FAF8F5] transition-colors">
                       <td className="py-3.5 px-4 font-bold text-[#0B3553]">
                         THE HIDEOUT <span className="text-slate-500 font-normal">(4–6 pax)</span>
                       </td>
@@ -2229,7 +2294,7 @@ export default function App() {
                         </button>
                       </td>
                     </tr>
-                    <tr>
+                    <tr className="hover:bg-[#FAF8F5] transition-colors">
                       <td className="py-3.5 px-4 font-bold text-[#0B3553]">
                         THE RIVER LOFT{' '}
                         <span className="text-slate-500 font-normal">(10–15 pax)</span>
@@ -2287,7 +2352,7 @@ export default function App() {
                 {PACKAGES_DATA.filter((p) => p.category === 'resort').map((pkg) => (
                   <div
                     key={pkg.id}
-                    className="rounded-2xl border border-slate-200 bg-white hover:border-[#0B3553]/40 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between"
+                    className="rounded-2xl border border-slate-200 bg-white hover:border-[#0B3553]/40 p-5 shadow-2xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2">
@@ -2327,7 +2392,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => handleSelectPackage(pkg.id, true)}
-                      className="mt-5 w-full py-2.5 px-4 rounded-xl bg-[#0B3553] hover:bg-[#16486B] text-white text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                      className="mt-5 w-full py-2.5 px-4 rounded-xl bg-[#0B3553] hover:bg-[#16486B] active:scale-98 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
                     >
                       <CalendarIcon className="w-3.5 h-3.5 text-[#F5EFE6]" />
                       Select in Rate Calculator
@@ -2364,7 +2429,7 @@ export default function App() {
                 <div
                   key={item.id}
                   onClick={() => setActiveLightboxAmenity(item)}
-                  className="group bg-white rounded-2xl border border-[#E6DBC8] overflow-hidden shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+                  className="group bg-white rounded-2xl border border-[#E6DBC8] overflow-hidden shadow-2xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between"
                 >
                   <div>
                     <div className="relative h-56 w-full overflow-hidden bg-slate-100">
@@ -2446,7 +2511,7 @@ export default function App() {
               return (
                 <div
                   key={policy.num}
-                  className="p-6 rounded-2xl bg-[#FAF8F5] border border-[#E6DBC8] shadow-2xs"
+                  className="p-6 rounded-2xl bg-[#FAF8F5] border border-[#E6DBC8] shadow-2xs hover:shadow-md transition-shadow duration-300"
                 >
                   <div className="flex items-center gap-3 mb-4 pb-3 border-b border-[#E6DBC8]">
                     <div className="p-2.5 rounded-xl bg-[#0B3553] text-[#F5EFE6]">
@@ -2565,7 +2630,7 @@ export default function App() {
             {REVIEWS_DATA.map((rev) => (
               <div
                 key={rev.id}
-                className="bg-white p-6 sm:p-7 rounded-2xl border border-[#E6DBC8] shadow-2xs flex flex-col justify-between relative"
+                className="bg-white p-6 sm:p-7 rounded-2xl border border-[#E6DBC8] shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between relative"
               >
                 <Quote className="w-8 h-8 text-[#F5EFE6] absolute top-5 right-5" />
                 <div>
@@ -2618,7 +2683,7 @@ export default function App() {
                   href="https://www.google.com/maps/search/?api=1&query=The+Forts+Riverside+Private+Resort+Angat+River+Beltran+Street"
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 bg-[#0B3553] hover:bg-[#16486B] text-white text-xs sm:text-sm font-bold px-5 py-3 rounded-xl transition-colors"
+                  className="inline-flex items-center gap-2 bg-[#0B3553] hover:bg-[#16486B] active:scale-95 text-white text-xs sm:text-sm font-bold px-5 py-3 rounded-xl transition-all"
                 >
                   <MapPin className="w-4 h-4 text-[#F5EFE6]" />
                   Open in Google Maps
@@ -2707,7 +2772,7 @@ export default function App() {
               return (
                 <div
                   key={index}
-                  className="bg-white rounded-2xl border border-[#E6DBC8] overflow-hidden transition-all"
+                  className="bg-white rounded-2xl border border-[#E6DBC8] overflow-hidden transition-all duration-200"
                 >
                   <button
                     type="button"
@@ -2718,13 +2783,13 @@ export default function App() {
                       {faq.question}
                     </span>
                     {isOpen ? (
-                      <ChevronUp className="w-5 h-5 text-[#1D5B8C] shrink-0" />
+                      <ChevronUp className="w-5 h-5 text-[#1D5B8C] shrink-0 transition-transform" />
                     ) : (
-                      <ChevronDown className="w-5 h-5 text-slate-400 shrink-0" />
+                      <ChevronDown className="w-5 h-5 text-slate-400 shrink-0 transition-transform" />
                     )}
                   </button>
                   {isOpen && (
-                    <div className="px-5 sm:px-6 pb-6 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-4">
+                    <div className="px-5 sm:px-6 pb-6 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-4 animate-step-enter">
                       {faq.answer}
                     </div>
                   )}
@@ -2842,23 +2907,20 @@ export default function App() {
               </ul>
             </div>
 
-            {/* COLUMN 3: Official Reservation Form */}
+            {/* COLUMN 3: Direct On-Site Booking CTA (Replaces Google Form) */}
             <div className="md:col-span-4 space-y-3 text-sm text-center md:text-left flex flex-col items-center md:items-start">
               <h4 className="font-bold text-[#F5EFE6] uppercase tracking-wider text-xs mb-1">
-                Official Reservation Form
+                Direct Online Booking
               </h4>
               <p className="text-xs text-slate-300 leading-relaxed max-w-xs">
-                Ready to lock in your dates? Compute your package rate using our 3-Step calculator
-                or fill out our official booking form:
+                Ready to lock in your dates or inquire about an event? Use our 3-Step calculator to reserve directly on our website:
               </p>
               <a
-                href="https://forms.gle/STv73fxDoKJxDC4A7"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 bg-[#F5EFE6] hover:bg-white text-[#0B3553] font-bold text-xs px-4 py-3 rounded-xl transition-colors mt-2"
+                href="#booking-calendar"
+                className="inline-flex items-center justify-center gap-2 bg-[#F5EFE6] hover:bg-white active:scale-95 text-[#0B3553] font-bold text-xs px-4 py-3 rounded-xl transition-all mt-2"
               >
-                Open Google Booking Form
-                <ExternalLink className="w-3.5 h-3.5" />
+                <CalendarIcon className="w-3.5 h-3.5" />
+                Book or Inquire Now
               </a>
             </div>
           </div>
@@ -2879,11 +2941,11 @@ export default function App() {
       {activeLightboxAmenity && (
         <div
           onClick={() => setActiveLightboxAmenity(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs animate-fade-in"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl border border-[#E6DBC8]"
+            className="bg-white rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl border border-[#E6DBC8] animate-modal-pop"
           >
             <div className="relative h-72 sm:h-96 bg-slate-900">
               <SmartResortImage
@@ -2895,7 +2957,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setActiveLightboxAmenity(null)}
-                className="absolute top-4 right-4 p-2 rounded-full bg-[#0B3553]/90 text-white hover:bg-[#0B3553] cursor-pointer"
+                className="absolute top-4 right-4 p-2 rounded-full bg-[#0B3553]/90 text-white hover:bg-[#0B3553] active:scale-95 transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2917,12 +2979,12 @@ export default function App() {
           DIRECT ON-SITE RESERVATION FORM MODAL
       ========================================== */}
       {bookingModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-lg w-full border border-[#E6DBC8] shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-lg w-full border border-[#E6DBC8] shadow-2xl overflow-hidden animate-modal-pop">
             <div className="p-5 sm:p-6 bg-[#0B3553] text-white border-b-2 border-[#C8AD7F] flex items-center justify-between">
               <div>
                 <span className="text-[11px] uppercase tracking-widest text-[#E6DBC8] font-bold">
-                  Direct Online Reservation
+                  {selectedPackage.isEvent ? 'Event Quotation Inquiry' : 'Direct Online Reservation'}
                 </span>
                 <h3 className="text-xl font-brand-serif font-bold mt-0.5">
                   {selectedPackage.name}
@@ -2934,52 +2996,166 @@ export default function App() {
                   setBookingModalOpen(false);
                   setBookingSubmitResult(null);
                 }}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {bookingSubmitResult?.status === 'success' ? (
-              <div className="p-6 sm:p-8 text-center space-y-4">
-                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+              <div className="p-6 sm:p-8 text-center space-y-4 animate-step-enter">
+                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto animate-success-pop">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
                 <span className="inline-block text-xs font-extrabold uppercase tracking-widest bg-[#F5EFE6] text-[#0B3553] border border-[#E6DBC8] px-3.5 py-1 rounded-full">
                   Ref ID: {bookingSubmitResult.bookingId}
                 </span>
-                <h4 className="text-2xl font-brand-serif font-bold text-[#0B3553]">
-                  Dates Reserved for 24 Hours!
-                </h4>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  Your dates are now crossed out on our calendar. To officially lock in your booking, please settle the <strong>50% Down Payment ({formatPHP(priceBreakdown.downPayment50)})</strong> within 24 hours.
-                </p>
 
-                <div className="p-5 rounded-xl bg-[#FAF8F5] border border-[#E6DBC8] text-left text-xs sm:text-sm shadow-inner">
-                  <p className="font-bold text-[#0B3553] border-b border-[#E6DBC8] pb-2 mb-3">
-                    Payment Details
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-5 items-center sm:items-start">
-                    <img
-                      src="/gcash-qr.png"
-                      alt="GCash QR Code"
-                      className="w-32 h-32 object-cover rounded-lg shadow-sm border border-slate-200 bg-white p-1"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                    <div className="space-y-2 text-slate-600 w-full">
-                      <p><strong>GCash:</strong> 0960 503 8082 (The Forts)</p>
-                      <p><strong>BDO Bank:</strong> 0012 3456 7890 (The Forts Resort)</p>
-                      <div className="mt-2 text-[10px] sm:text-xs text-rose-700 font-bold bg-rose-50 p-2 rounded border border-rose-100 leading-relaxed">
-                        ⚠️ Please include your Reference ID (<strong>{bookingSubmitResult.bookingId}</strong>) in your transfer notes!
+                {bookingSubmitResult.isEvent ? (
+                  /* --- EVENT INQUIRY CONFIRMATION VIEW (NO PAYMENT BOX) --- */
+                  <>
+                    <h4 className="text-2xl font-brand-serif font-bold text-[#0B3553]">
+                      Event Inquiry Recorded!
+                    </h4>
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                      We have logged your event details in our system. Because event packages are customized to your guest count and schedule, please coordinate directly with the resort owner for your price quotation.
+                    </p>
+
+                    <div className="p-5 rounded-xl bg-[#FAF8F5] border border-[#E6DBC8] text-left text-xs sm:text-sm shadow-inner space-y-3">
+                      <p className="font-bold text-[#0B3553] border-b border-[#E6DBC8] pb-2">
+                        How to Coordinate Your Event Quotation
+                      </p>
+
+                      <div className="space-y-2.5 text-slate-600">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Phone className="w-4 h-4 text-[#0B3553] shrink-0" />
+                          <span><strong>Call / Text / Viber:</strong></span>
+                          <span className="font-mono font-medium text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200">
+                            0960 503 8082
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyPayment('09605038082', 'phone')}
+                            className="ml-auto p-1.5 rounded-md bg-white border border-slate-200 text-slate-500 hover:bg-[#F5EFE6] hover:text-[#0B3553] active:scale-90 transition-all flex items-center justify-center cursor-pointer shadow-xs"
+                            title="Copy Mobile Number"
+                          >
+                            {copiedPayment === 'phone' ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <FacebookIcon className="w-4 h-4 text-[#0B3553] shrink-0" />
+                          <span><strong>Facebook Messenger:</strong></span>
+                          <a
+                            href="https://www.facebook.com/theforts.ph/"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-bold text-[#1D5B8C] underline hover:text-[#0B3553]"
+                          >
+                            facebook.com/theforts.ph
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="mt-2 text-[11px] sm:text-xs text-[#0B3553] font-semibold bg-[#F5EFE6] p-3 rounded-lg border border-[#E6DBC8] leading-relaxed">
+                        💡 <strong>Next Step:</strong> Send us a message with your Reference ID (<strong>{bookingSubmitResult.bookingId}</strong>) so we can discuss your event requirements, finalize your rate, and manually update your booking status!
                       </div>
                     </div>
-                  </div>
-                  <p className="text-slate-600 pt-4 mt-4 border-t border-[#E6DBC8] leading-relaxed">
-                    Once paid, send your screenshot & Ref ID to our Facebook page (<strong>facebook.com/theforts.ph</strong>).
-                  </p>
-                </div>
+                  </>
+                ) : (
+                  /* --- STANDARD STAYCATION / RESORT PAYMENT VIEW --- */
+                  <>
+                    <h4 className="text-2xl font-brand-serif font-bold text-[#0B3553]">
+                      Dates Reserved for 24 Hours!
+                    </h4>
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                      Your dates are now crossed out on our calendar. To officially lock in your booking, please settle the{' '}
+                      <strong>
+                        50% Down Payment (
+                        {formatPHP(bookingSubmitResult.downPayment50 ?? priceBreakdown.downPayment50)})
+                      </strong>{' '}
+                      within 24 hours.
+                    </p>
+
+                    <div className="p-5 rounded-xl bg-[#FAF8F5] border border-[#E6DBC8] text-left text-xs sm:text-sm shadow-inner">
+                      <p className="font-bold text-[#0B3553] border-b border-[#E6DBC8] pb-2 mb-3">
+                        Payment Details
+                      </p>
+
+                      <div className="flex flex-col sm:flex-row gap-5 items-center sm:items-start">
+                        <img
+                          src="/gcash-qr.png"
+                          alt="GCash QR Code"
+                          className="w-32 h-32 object-cover rounded-lg shadow-sm border border-slate-200 bg-white p-1"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+
+                        <div className="space-y-3 text-slate-600 w-full">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="m-0 shrink-0">
+                              <strong>GCash:</strong>
+                            </p>
+                            <span className="font-mono font-medium text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200">
+                              0960 503 8082
+                            </span>
+                            <span className="text-[11px] text-slate-500 font-medium">
+                              (Therese Fortin)
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyPayment('09605038082', 'gcash')}
+                              className="ml-auto sm:ml-1 p-1.5 rounded-md bg-white border border-slate-200 text-slate-500 hover:bg-[#F5EFE6] hover:text-[#0B3553] active:scale-90 transition-all flex items-center justify-center cursor-pointer shadow-xs"
+                              title="Copy GCash Number"
+                            >
+                              {copiedPayment === 'gcash' ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="m-0 shrink-0">
+                              <strong>BDO Bank:</strong>
+                            </p>
+                            <span className="font-mono font-medium text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200">
+                              0012 3456 7890
+                            </span>
+                            <span className="text-[11px] text-slate-500 font-medium">
+                              (Therese Fortin)
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyPayment('001234567890', 'bdo')}
+                              className="ml-auto sm:ml-1 p-1.5 rounded-md bg-white border border-slate-200 text-slate-500 hover:bg-[#F5EFE6] hover:text-[#0B3553] active:scale-90 transition-all flex items-center justify-center cursor-pointer shadow-xs"
+                              title="Copy Account Number"
+                            >
+                              {copiedPayment === 'bdo' ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+
+                        
+                        </div>
+                      </div>
+
+                      <p className="text-slate-600 pt-4 mt-4 border-t border-[#E6DBC8] leading-relaxed">
+                        Once paid, send your screenshot & Ref ID to our Facebook page (
+                        <strong>facebook.com/theforts.ph</strong>).
+                      </p>
+                    </div>
+                  </>
+                )}
 
                 <button
                   type="button"
@@ -2987,7 +3163,7 @@ export default function App() {
                     setBookingModalOpen(false);
                     setBookingSubmitResult(null);
                   }}
-                  className="w-full py-3.5 mt-2 rounded-xl bg-[#0B3553] hover:bg-[#16486B] text-white font-bold text-sm cursor-pointer shadow-md transition-colors"
+                  className="w-full py-3.5 mt-2 rounded-xl bg-[#0B3553] hover:bg-[#16486B] active:scale-98 text-white font-bold text-sm cursor-pointer shadow-md transition-all"
                 >
                   Done
                 </button>
@@ -2998,7 +3174,7 @@ export default function App() {
                 className="p-5 sm:p-6 space-y-4 max-h-[82vh] overflow-y-auto"
               >
                 {bookingSubmitResult?.status === 'error' && (
-                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold animate-step-enter">
                     {bookingSubmitResult.message}
                   </div>
                 )}
@@ -3014,7 +3190,7 @@ export default function App() {
                       value={guestName}
                       onChange={(e) => setGuestName(e.target.value)}
                       placeholder="Juan Dela Cruz"
-                      className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553]"
+                      className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553] transition-colors"
                     />
                   </div>
                   <div>
@@ -3027,12 +3203,12 @@ export default function App() {
                       value={guestContact}
                       onChange={(e) => setGuestContact(e.target.value)}
                       placeholder="0917 XXX XXXX"
-                      className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553]"
+                      className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553] transition-colors"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className={`grid grid-cols-1 ${selectedPackage.isEvent ? '' : 'sm:grid-cols-2'} gap-3`}>
                   <div>
                     <label className="block text-xs font-bold text-[#0B3553] mb-1">
                       Email Address (For Confirmation) *
@@ -3043,33 +3219,41 @@ export default function App() {
                       value={guestEmail}
                       onChange={(e) => setGuestEmail(e.target.value)}
                       placeholder="juan@email.com"
-                      className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553]"
+                      className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553] transition-colors"
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#0B3553] mb-1">
-                      GCash / Bank Ref # (If paid)
-                    </label>
-                    <input
-                      type="text"
-                      value={paymentRef}
-                      onChange={(e) => setPaymentRef(e.target.value)}
-                      placeholder="Optional (or pay within 24h)"
-                      className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553]"
-                    />
-                  </div>
+                  {!selectedPackage.isEvent && (
+                    <div>
+                      <label className="block text-xs font-bold text-[#0B3553] mb-1">
+                        GCash / Bank Ref # (If paid)
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentRef}
+                        onChange={(e) => setPaymentRef(e.target.value)}
+                        placeholder="Optional (or pay within 24h)"
+                        className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553] transition-colors"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-[#0B3553] mb-1">
-                    Special Requests / Notes (Optional)
+                    {selectedPackage.isEvent
+                      ? 'Event Details / Special Requests (Optional)'
+                      : 'Special Requests / Notes (Optional)'}
                   </label>
                   <input
                     type="text"
                     value={guestNotes}
                     onChange={(e) => setGuestNotes(e.target.value)}
-                    placeholder="e.g., Target arrival time, meal preference..."
-                    className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553]"
+                    placeholder={
+                      selectedPackage.isEvent
+                        ? 'e.g., Catering setup, sound system, target time...'
+                        : 'e.g., Target arrival time, meal preference...'
+                    }
+                    className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553] transition-colors"
                   />
                 </div>
 
@@ -3084,13 +3268,25 @@ export default function App() {
                         : formatReadableDate(checkInDateKey)}
                     </span>
                   </div>
+                  {selectedPackage.isEvent && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Preferred Schedule:</span>
+                      <span className="font-semibold text-slate-800 text-right">
+                        {eventTimePreference}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Registered Guests:</span>
+                    <span className="text-slate-500">
+                      {selectedPackage.isEvent ? 'Estimated Guests:' : 'Registered Guests:'}
+                    </span>
                     <span className="font-semibold text-slate-800">
-                      {guestCount} Pax ({priceBreakdown.excessGuests} extra)
+                      {selectedPackage.isEvent
+                        ? `${guestCount} Pax`
+                        : `${guestCount} Pax (${priceBreakdown.excessGuests} extra)`}
                     </span>
                   </div>
-                  {!selectedPackage.isEvent && (
+                  {!selectedPackage.isEvent ? (
                     <>
                       <div className="pt-2 border-t border-[#E6DBC8] flex justify-between items-baseline">
                         <span className="font-bold text-[#0B3553]">Total Computed Rate:</span>
@@ -3103,16 +3299,23 @@ export default function App() {
                         <span>{formatPHP(priceBreakdown.downPayment50)}</span>
                       </div>
                     </>
+                  ) : (
+                    <div className="pt-2 border-t border-[#E6DBC8] flex justify-between items-center text-xs text-[#8A6D3B] font-bold">
+                      <span>Rate Status:</span>
+                      <span>Custom Quotation (To be discussed with Owner)</span>
+                    </div>
                   )}
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmittingBooking}
-                  className="w-full py-3.5 px-5 rounded-xl bg-[#0B3553] hover:bg-[#16486B] disabled:bg-slate-400 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  className="w-full py-3.5 px-5 rounded-xl bg-[#0B3553] hover:bg-[#16486B] active:scale-98 disabled:bg-slate-400 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
                   {isSubmittingBooking
-                    ? 'Submitting Reservation...'
+                    ? 'Submitting...'
+                    : selectedPackage.isEvent
+                    ? 'Submit Event Inquiry'
                     : 'Submit Reservation & Hold Dates'}
                 </button>
               </form>

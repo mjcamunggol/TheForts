@@ -115,7 +115,7 @@ export const STAYCATION_POLICIES_PDF = [
     title: 'Kitchen & Cooking',
     icon: Utensils,
     items: [
-      'Kitchen use and LPG are included for Staycation bookings.',
+      'Kitchen use and LPG are included for Staycation bookings (optional +₱400 add-on for Exclusive Resort packages).',
       'Use cooking equipment responsibly, never leave cooking unattended, and turn off the LPG after use.',
       'Guests must clean their cooking area, wash used utensils, and dispose of food waste properly.'
     ]
@@ -154,11 +154,11 @@ export const STAYCATION_POLICIES_PDF = [
 
 export const PAYMENT_CANCELLATION_PDF = [
   {
-    title: '1. Reservation & 50% Down Payment',
+    title: '1. Reservation Hold & 50% Down Payment',
     items: [
-      'A 50% down payment (DP) is required to secure your reservation.',
-      'Your booking is confirmed only after management verifies your payment (send proof of payment through the official booking channel).',
-      'The remaining 50% balance must be paid upon arrival, before room use.'
+      'Submitting a reservation on the website places a temporary 24-hour hold on your selected dates. Unpaid holds automatically expire after 24 hours.',
+      'A 50% down payment (DP) is required within 24 hours to officially lock in your booking (send proof of payment and your Reference ID to our official Facebook page).',
+      'For Events Bookings, custom quotations are finalized directly with management before settling the 50% down payment. The remaining 50% balance is payable upon arrival.'
     ]
   },
   {
