@@ -701,8 +701,7 @@ export default function App() {
 
       const existingSlot = b.timeSlot || getPackageTimeSlot(b.packageId, b.category);
 
-      // Rule 1: If existing booking is an overnight stay and cleanTargetDate is its Check-Out day (12:00 NN),
-      // it vacates by 12:00 NN — so Day Tour, Night Tour, Event, or new Overnight Check-In is ALLOWED!
+      // Rule 1: If existing booking is an overnight stay and we are looking at its Check-Out day (12:00 NN)
       if (
         existingSlot === 'overnight' &&
         b.checkOutDate &&
@@ -710,11 +709,13 @@ export default function App() {
         b.checkOutDate.trim() === cleanTargetDate &&
         b.checkInDate.trim() !== cleanTargetDate
       ) {
+        // BLOCKED: Day Tours (8 AM) and Events (8 AM / 9 AM) overlap with the 12:00 NN check-out
+        if (currentSlot === 'day' || currentSlot === 'event') {
+          return { isBlocked: true, statusLabel: b.status };
+        }
+        // ALLOWED: Night Tours (7/8 PM) or new Overnight Stays (2 PM) happen AFTER 12:00 NN
         continue;
       }
-
-      const isDateBlocked = b.occupiedDates.some((d) => d.trim() === cleanTargetDate);
-      if (!isDateBlocked) continue;
 
       // Rule 2: Day Tour (8AM–5PM) and Night Tour (7PM/8PM–5AM) do NOT overlap on the same date!
       if (
@@ -1843,10 +1844,10 @@ export default function App() {
                   <div className="flex items-center gap-2 text-xs text-slate-500">
                     <Keyboard className="w-4 h-4 text-slate-400" />
                     <span>
-                      {selectedPackage.isOvernightMultiDay
-                        ? 'Select up to 3 Days & 2 Nights (12:00 NN check-out days can be booked for Day/Night tours)'
-                        : 'Single-day selection (Day Tour 8AM–5PM & Night Tour 7PM/8PM–5AM do not overlap)'}
-                    </span>
+                    {selectedPackage.isOvernightMultiDay
+                      ? 'Select up to 3 Days & 2 Nights (Max 2 nights)'
+                      : 'Day Tours & Events cannot be booked on the same day as a 12:00 NN Check-Out.'}
+                  </span>
                   </div>
 
                   <div className="flex items-center gap-4">
