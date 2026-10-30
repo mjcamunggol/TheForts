@@ -126,11 +126,43 @@ export default function App() {
     fetchSheetAvailability();
   }, []);
 
+// Regex helpers (Place these just above your submit function)
+  // Mobile: exactly 11 digits (e.g., 09171234567)
+  const isValidMobile = (num) => /^\d{11}$/.test(num);
+
+  // Email: requires username + @ + domain name + . + TLD (at least 2 chars)
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(email.trim());
+
   // Submit reservation directly to Google Sheets + Send Emails
   const handleSubmitDirectBooking = async (e) => {
     e.preventDefault();
-    if (!guestName.trim() || !guestContact.trim()) return;
 
+    // --- 1. VALIDATION CHECKS ---
+    if (!guestName.trim()) {
+      setBookingSubmitResult({
+        status: 'error',
+        message: 'Please enter your full name.',
+      });
+      return;
+    }
+
+    if (!isValidMobile(guestContact)) {
+      setBookingSubmitResult({
+        status: 'error',
+        message: 'Please enter a valid 11-digit mobile number (e.g., 09171234567).',
+      });
+      return;
+    }
+
+    if (!isValidEmail(guestEmail)) {
+      setBookingSubmitResult({
+        status: 'error',
+        message: 'Please enter a valid email address with a domain (e.g., name@domain.com).',
+      });
+      return;
+    }
+
+    // --- 2. PROCEED WITH BOOKING ---
     setIsSubmittingBooking(true);
     setBookingSubmitResult(null);
 
@@ -3019,166 +3051,216 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              <form
-                onSubmit={handleSubmitDirectBooking}
-                className="p-5 sm:p-6 space-y-4 max-h-[82vh] overflow-y-auto"
-              >
-                {bookingSubmitResult?.status === 'error' && (
-                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold animate-step-enter">
-                    {bookingSubmitResult.message}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-[#0B3553] mb-1">
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={guestName}
-                      onChange={(e) => setGuestName(e.target.value)}
-                      placeholder="Juan Dela Cruz"
-                      className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553] transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#0B3553] mb-1">
-                      Mobile Number *
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={guestContact}
-                      onChange={(e) => setGuestContact(e.target.value)}
-                      placeholder="0917 XXX XXXX"
-                      className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553] transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div
-                  className={`grid grid-cols-1 ${
-                    selectedPackage.isEvent ? '' : 'sm:grid-cols-2'
-                  } gap-3`}
+                <form
+                  onSubmit={handleSubmitDirectBooking}
+                  className="p-5 sm:p-6 space-y-4 max-h-[82vh] overflow-y-auto"
                 >
-                  <div>
-                    <label className="block text-xs font-bold text-[#0B3553] mb-1">
-                      Email Address (For Confirmation) *
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={guestEmail}
-                      onChange={(e) => setGuestEmail(e.target.value)}
-                      placeholder="juan@email.com"
-                      className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553] transition-colors"
-                    />
-                  </div>
-                  {!selectedPackage.isEvent && (
+                  {bookingSubmitResult?.status === 'error' && (
+                    <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold animate-step-enter">
+                      {bookingSubmitResult.message}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-[#0B3553] mb-1">
-                        GCash / Bank Ref # (If paid)
+                        Full Name *
                       </label>
                       <input
                         type="text"
-                        value={paymentRef}
-                        onChange={(e) => setPaymentRef(e.target.value)}
-                        placeholder="Optional (or pay within 24h)"
+                        required
+                        value={guestName}
+                        onChange={(e) => setGuestName(e.target.value)}
+                        placeholder="Juan Dela Cruz"
                         className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553] transition-colors"
                       />
                     </div>
-                  )}
-                </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-[#0B3553] mb-1">
-                    {selectedPackage.isEvent
-                      ? 'Event Details / Requested Add-Ons (Optional)'
-                      : 'Requested Add-Ons / Special Notes (Optional)'}
-                  </label>
-                  <input
-                    type="text"
-                    value={guestNotes}
-                    onChange={(e) => setGuestNotes(e.target.value)}
-                    placeholder={
-                      selectedPackage.isEvent
-                        ? 'e.g., Catering setup, floaters, ice box, charcoal...'
-                        : 'e.g., Pool floater, ice box, charcoal, arrival time (or acquire on booking day)...'
-                    }
-                    className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553] transition-colors"
-                  />
-                </div>
-
-                <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6DBC8] text-xs sm:text-sm space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Selected Dates:</span>
-                    <span className="font-bold text-[#0B3553] text-right">
-                      {selectedPackage.isOvernightMultiDay
-                        ? `${formatReadableDate(checkInDateKey)} (${
-                            selectedPackage.checkInTime || '2:00 PM'
-                          }) → ${formatReadableDate(checkOutDateKey)} (${
-                            selectedPackage.checkOutTime || '12:00 NN'
-                          })`
-                        : `${formatReadableDate(checkInDateKey)} (${
-                            selectedPackage.isEvent
-                              ? eventTimePreference
-                              : selectedPackage.timeLabel
-                          })`}
-                    </span>
-                  </div>
-                  {selectedPackage.isEvent && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Preferred Schedule:</span>
-                      <span className="font-semibold text-slate-800 text-right">
-                        {eventTimePreference}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">
-                      {selectedPackage.isEvent ? 'Estimated Guests:' : 'Registered Guests:'}
-                    </span>
-                    <span className="font-semibold text-slate-800">
-                      {selectedPackage.isEvent
-                        ? `${guestCount} Pax`
-                        : `${guestCount} Pax (${priceBreakdown.excessGuests} extra)`}
-                    </span>
-                  </div>
-                  {!selectedPackage.isEvent ? (
-                    <>
-                      <div className="pt-2 border-t border-[#E6DBC8] flex justify-between items-baseline">
-                        <span className="font-bold text-[#0B3553]">Total Computed Rate:</span>
-                        <span className="text-xl font-brand-serif font-extrabold text-[#0B3553]">
-                          {formatPHP(priceBreakdown.total)}
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block text-xs font-bold text-[#0B3553]">
+                          Mobile Number *
+                        </label>
+                        <span
+                          className={`text-[10px] font-semibold ${
+                            guestContact.length === 0
+                              ? 'text-slate-400'
+                              : isValidMobile(guestContact)
+                              ? 'text-emerald-600'
+                              : 'text-rose-500'
+                          }`}
+                        >
+                          {guestContact.length}/11 digits
                         </span>
                       </div>
-                      <div className="flex justify-between text-xs text-[#8A6D3B] font-bold">
-                        <span>Required 50% Down Payment (24-Hr Hold):</span>
-                        <span>{formatPHP(priceBreakdown.downPayment50)}</span>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="pt-2 border-t border-[#E6DBC8] flex justify-between items-center text-xs text-[#8A6D3B] font-bold">
-                      <span>Rate Status:</span>
-                      <span>Custom Quotation (To be discussed with Owner)</span>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        required
+                        maxLength={11}
+                        pattern="\d{11}"
+                        title="Mobile number must be exactly 11 digits"
+                        value={guestContact}
+                        onChange={(e) => {
+                          // Strip non-digits and limit to 11 characters
+                          const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 11);
+                          setGuestContact(digitsOnly);
+                        }}
+                        placeholder="09171234567"
+                        className={`w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border transition-colors focus:outline-none ${
+                          guestContact.length > 0 && !isValidMobile(guestContact)
+                            ? 'border-rose-400 focus:border-rose-500 bg-rose-50/30'
+                            : guestContact.length === 11
+                            ? 'border-emerald-500 focus:border-emerald-600'
+                            : 'border-slate-200 focus:border-[#0B3553]'
+                        }`}
+                      />
+                      {guestContact.length > 0 && !isValidMobile(guestContact) && (
+                        <p className="text-[11px] text-rose-600 mt-1 font-medium">
+                          Must be exactly 11 digits (numbers only).
+                        </p>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                <button
-                  type="submit"
-                  disabled={isSubmittingBooking}
-                  className="w-full py-3.5 px-5 rounded-xl bg-[#0B3553] hover:bg-[#16486B] active:scale-98 disabled:bg-slate-400 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
-                >
-                  {isSubmittingBooking
-                    ? 'Submitting...'
-                    : selectedPackage.isEvent
-                    ? 'Submit Event Inquiry'
-                    : 'Submit Reservation & Hold Dates'}
-                </button>
-              </form>
+                  <div
+                    className={`grid grid-cols-1 ${
+                      selectedPackage.isEvent ? '' : 'sm:grid-cols-2'
+                    } gap-3`}
+                  >
+                    <div>
+                      <label className="block text-xs font-bold text-[#0B3553] mb-1">
+                        Email Address (For Confirmation) *
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={guestEmail}
+                        onChange={(e) => setGuestEmail(e.target.value)}
+                        placeholder="juan@email.com"
+                        className={`w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border transition-colors focus:outline-none ${
+                          guestEmail.length > 0 && !isValidEmail(guestEmail)
+                            ? 'border-rose-400 focus:border-rose-500 bg-rose-50/30'
+                            : guestEmail.length > 0 && isValidEmail(guestEmail)
+                            ? 'border-emerald-500 focus:border-emerald-600'
+                            : 'border-slate-200 focus:border-[#0B3553]'
+                        }`}
+                      />
+                      {guestEmail.length > 0 && !isValidEmail(guestEmail) && (
+                        <p className="text-[11px] text-rose-600 mt-1 font-medium">
+                          Include a valid domain (e.g., @gmail.com, @yahoo.com).
+                        </p>
+                      )}
+                    </div>
+
+                    {!selectedPackage.isEvent && (
+                      <div>
+                        <label className="block text-xs font-bold text-[#0B3553] mb-1">
+                          GCash / Bank Ref # (If paid)
+                        </label>
+                        <input
+                          type="text"
+                          value={paymentRef}
+                          onChange={(e) => setPaymentRef(e.target.value)}
+                          placeholder="Optional (or pay within 24h)"
+                          className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553] transition-colors"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#0B3553] mb-1">
+                      {selectedPackage.isEvent
+                        ? 'Event Details / Requested Add-Ons (Optional)'
+                        : 'Requested Add-Ons / Special Notes (Optional)'}
+                    </label>
+                    <input
+                      type="text"
+                      value={guestNotes}
+                      onChange={(e) => setGuestNotes(e.target.value)}
+                      placeholder={
+                        selectedPackage.isEvent
+                          ? 'e.g., Catering setup, floaters, ice box, charcoal...'
+                          : 'e.g., Pool floater, ice box, charcoal, arrival time (or acquire on booking day)...'
+                      }
+                      className="w-full px-3 py-2 text-sm bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:border-[#0B3553] transition-colors"
+                    />
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6DBC8] text-xs sm:text-sm space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Selected Dates:</span>
+                      <span className="font-bold text-[#0B3553] text-right">
+                        {selectedPackage.isOvernightMultiDay
+                          ? `${formatReadableDate(checkInDateKey)} (${
+                              selectedPackage.checkInTime || '2:00 PM'
+                            }) → ${formatReadableDate(checkOutDateKey)} (${
+                              selectedPackage.checkOutTime || '12:00 NN'
+                            })`
+                          : `${formatReadableDate(checkInDateKey)} (${
+                              selectedPackage.isEvent
+                                ? eventTimePreference
+                                : selectedPackage.timeLabel
+                            })`}
+                      </span>
+                    </div>
+                    {selectedPackage.isEvent && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Preferred Schedule:</span>
+                        <span className="font-semibold text-slate-800 text-right">
+                          {eventTimePreference}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">
+                        {selectedPackage.isEvent ? 'Estimated Guests:' : 'Registered Guests:'}
+                      </span>
+                      <span className="font-semibold text-slate-800">
+                        {selectedPackage.isEvent
+                          ? `${guestCount} Pax`
+                          : `${guestCount} Pax (${priceBreakdown.excessGuests} extra)`}
+                      </span>
+                    </div>
+                    {!selectedPackage.isEvent ? (
+                      <>
+                        <div className="pt-2 border-t border-[#E6DBC8] flex justify-between items-baseline">
+                          <span className="font-bold text-[#0B3553]">Total Computed Rate:</span>
+                          <span className="text-xl font-brand-serif font-extrabold text-[#0B3553]">
+                            {formatPHP(priceBreakdown.total)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-xs text-[#8A6D3B] font-bold">
+                          <span>Required 50% Down Payment (24-Hr Hold):</span>
+                          <span>{formatPHP(priceBreakdown.downPayment50)}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="pt-2 border-t border-[#E6DBC8] flex justify-between items-center text-xs text-[#8A6D3B] font-bold">
+                        <span>Rate Status:</span>
+                        <span>Custom Quotation (To be discussed with Owner)</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={
+                      isSubmittingBooking ||
+                      !guestName.trim() ||
+                      !isValidMobile(guestContact) ||
+                      !isValidEmail(guestEmail)
+                    }
+                    className="w-full py-3.5 px-5 rounded-xl bg-[#0B3553] hover:bg-[#16486B] active:scale-98 disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    {isSubmittingBooking
+                      ? 'Submitting...'
+                      : selectedPackage.isEvent
+                      ? 'Submit Event Inquiry'
+                      : 'Submit Reservation & Hold Dates'}
+                  </button>
+                </form>
             )}
           </div>
         </div>
