@@ -2972,10 +2972,10 @@ export default function App() {
                               <strong>BDO Bank:</strong>
                             </p>
                             <span className="font-mono font-medium text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200">
-                              0012 3456 7890
+                              Coming Soon
                             </span>
                             <span className="text-[11px] text-slate-500 font-medium">
-                              (Therese Fortin)
+                              (...)
                             </span>
                             <button
                               type="button"
