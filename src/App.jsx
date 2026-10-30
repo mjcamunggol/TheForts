@@ -2979,7 +2979,7 @@ export default function App() {
                             </span>
                             <button
                               type="button"
-                              onClick={() => handleCopyPayment('001234567890', 'bdo')}
+                              onClick={() => handleCopyPayment('coming soon', 'bdo')}
                               className="ml-auto sm:ml-1 p-1.5 rounded-md bg-white border border-slate-200 text-slate-500 hover:bg-[#F5EFE6] hover:text-[#0B3553] active:scale-90 transition-all flex items-center justify-center cursor-pointer shadow-xs"
                               title="Copy Account Number"
                             >
