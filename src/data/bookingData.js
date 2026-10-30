@@ -2,13 +2,13 @@ import { Users, Sparkles, Sun, Moon, Waves, BedDouble, PartyPopper } from 'lucid
 
 export const SITE_IMAGES = {
   logo: '',
-  heroBackground: '/images/herobg.png',
-  swimmingPoolArea: '/images/swimming.png',
-  riversideBalconyArea: '/images/balcony.png',
-  functionSpace: '/images/function.png',
-  kitchenArea: '/images/kitchen.png',
-  recreationalArea: '/images/recreation.png',
-  gardenArea: '/images/garden.png',
+  heroBackground: '/herobg.jpg',
+  swimmingPoolArea: '/swimming.jpg',
+  riversideBalconyArea: '/balcony.jpg',
+  functionSpace: '/function.jpg',
+  kitchenArea: '/kitchen.jpg',
+  recreationalArea: '/recreation.png',
+  gardenArea: '/garden.jpg',
   // 4 Official Staycation Rooms from PDF
   vistaRoom: '/overlooking.jpg',
   hideoutRoom: '/hideout.jpg',
