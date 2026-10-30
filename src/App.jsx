@@ -4,7 +4,6 @@ import {
   ArrowRight,
   Bath,
   BedDouble,
-  Bot,
   Calendar as CalendarIcon,
   Camera,
   Check,
@@ -27,13 +26,11 @@ import {
   MapPin,
   Maximize2,
   Menu,
-  MessageCircle,
   Minus,
   Phone,
   Plus,
   Quote,
   RotateCcw,
-  Send,
   Sparkles,
   Star,
   Users,
@@ -55,10 +52,6 @@ import {
   STAYCATION_POLICIES_PDF
 } from './data/siteContent.js';
 import {
-  QUICK_CHAT_QUESTIONS,
-  RESORT_SYSTEM_PROMPT
-} from './data/chatbotData.js';
-import {
   addDaysToKey,
   buildMonthDaysMondayFirst,
   diffDaysBetweenKeys,
@@ -72,332 +65,9 @@ import {
   FacebookIcon,
   InstagramIcon
 } from './components/SocialIcons.jsx';
-import { BOOKING_SCRIPT_URL, GEMINI_API_KEY } from './config.js';
-
-function FortsBrandLogo({ className = 'w-12 h-12' }) {
-  const [imgError, setImgError] = useState(false);
-
-  if (!SITE_IMAGES.logo || imgError) {
-    return null;
-  }
-
-  return (
-    <img
-      src={SITE_IMAGES.logo}
-      alt="The Forts Riverside Private Resort Logo"
-      onError={() => setImgError(true)}
-      className={`${className} rounded-full object-contain shadow-xs shrink-0`}
-    />
-  );
-}
-
-function SmartResortImage({ localSrc, fallbackSrc, alt, className }) {
-  const [useFallback, setUseFallback] = useState(!localSrc);
-  const activeSrc = useFallback ? fallbackSrc : localSrc;
-
-  return (
-    <img
-      src={activeSrc}
-      alt={alt}
-      onError={() => {
-        if (!useFallback && fallbackSrc) {
-          setUseFallback(true);
-        }
-      }}
-      className={className}
-    />
-  );
-}
-
-function getLocalFallbackAnswer(userText) {
-  const q = userText.toLowerCase();
-
-  if (
-    q.includes('staycation') ||
-    q.includes('room') ||
-    q.includes('vista') ||
-    q.includes('cozy') ||
-    q.includes('hideout') ||
-    q.includes('loft')
-  ) {
-    return `Here are our 22-Hour Room-Only Staycation rates (2:00 PM – 12:00 NN):\n• THE COZY DEN (2–4 pax): ₱2,000 Weekday | ₱2,500 Wknd/Hol\n• THE VISTA (2–4 pax): ₱2,800 Weekday | ₱3,300 Wknd/Hol\n• THE HIDEOUT (4–6 pax): ₱3,000 Weekday | ₱3,500 Wknd/Hol\n• THE RIVER LOFT (10–15 pax): ₱5,000 Weekday | ₱6,000 Wknd/Hol\n\nAll staycations include free Silog breakfast per registered guest, pool access, kitchen & free LPG use, Wi-Fi, parking, and karaoke until 10 PM!`;
-  }
-  if (
-    q.includes('inclusion') ||
-    q.includes('include') ||
-    q.includes('breakfast') ||
-    q.includes('gas') ||
-    q.includes('lpg')
-  ) {
-    return `Room-Only Staycations include:\n• 22-hour A/C room stay (2PM–12NN)\n• Free Silog breakfast for each registered guest\n• Swimming pool & riverside access\n• Kitchen access + FREE LPG cooking use\n• Wi-Fi, gated parking & karaoke (until 10 PM).\n\nFor Exclusive Resort Bookings, LPG use is an optional +₱400/night add-on.`;
-  }
-  if (
-    q.includes('exclusive') ||
-    q.includes('day tour') ||
-    q.includes('night tour') ||
-    q.includes('whole resort') ||
-    q.includes('package')
-  ) {
-    return `Our Exclusive Resort Packages (Mon–Thu / Fri–Sun & Hol, max 30 guests):\n• Day Tour (8AM–5PM, w/ 1 room): ₱4,500 / ₱5,000 (Oct–Nov Mon–Thu Promo: ₱3,999 w/o room)\n• Night Tour Regular (8PM–5AM, w/ 1 Family Room): ₱7,000 / ₱7,500\n• Short Stay Night Promo (7PM–12MN, no room): ₱4,000 / ₱4,500\n• 22-Hr Stay (4–8 pax, Small Barkada + Family Room): ₱7,999 / ₱8,999\n• 22-Hr Stay (9–15 pax, Barkada Room): ₱10,999 / ₱11,999\n• 22-Hr Stay (16–20 pax, Barkada + Family Room): ₱13,999 / ₱14,999\n• Whole Resort (21–30 pax, all 4 rooms): ₱15,999 / ₱16,499`;
-  }
-  if (
-    q.includes('extra') ||
-    q.includes('excess') ||
-    q.includes('mattress') ||
-    q.includes('add-on') ||
-    q.includes('floater') ||
-    q.includes('ice') ||
-    q.includes('charcoal')
-  ) {
-    return `Official Add-On & Extra Guest Rates:\n• Staycation Extra Guest: ₱300/person per stay (with pool & Silog breakfast)\n• Extra Single Mattress: ₱150/night (request in advance)\n• Extra Double Mattress: ₱200/night (request in advance)\n• LPG / Cooking Fee (Resort): ₱400/night\n• Pool Floater: ₱75/stay (+₱100 refundable deposit)\n• Ice Box (6 packs): ₱210 | Ice Pack (5kg): ₱35 | Charcoal (Uling): ₱20\n\nAll add-ons except mattresses can be requested in your notes or acquired on the day of your booking!`;
-  }
-  if (q.includes('event') || q.includes('venue') || q.includes('birthday') || q.includes('reunion')) {
-    return `Event Venue Rentals (31–100 pax) are available for:\n• 6 Hours (9:00 AM – 3:00 PM)\n• 8 Hours (9:00 AM – 5:00 PM)\n• 12 Hours (8:00 AM – 8:00 PM)\n\nIncludes Pavilion, designated pool area, and 1 changing/rest room (setup & cleanup included; no overnight sleeping). Select "Events Booking" in our calculator to request a custom quotation!`;
-  }
-  if (
-    q.includes('pay') ||
-    q.includes('down') ||
-    q.includes('cancel') ||
-    q.includes('resched') ||
-    q.includes('rule') ||
-    q.includes('policy')
-  ) {
-    return `Booking & House Policies:\n• 50% down payment is required to lock in your dates; 50% balance is paid upon arrival before facility use.\n• Down payments are non-refundable for cancellations/no-shows.\n• 1 reschedule is allowed if requested at least 7 days before check-in.\n• Karaoke is until 10:00 PM, no smoking inside rooms, and no corkage fee on food!`;
-  }
-  if (q.includes('book') || q.includes('reserve') || q.includes('location') || q.includes('where')) {
-    return `We are located beside the scenic Angat River near Beltran Street in Bustos, Bulacan (search "The Forts Riverside Private Resort" on Google Maps/Waze).\n\nTo book or request an event quote, select your dates in our 3-Step Rate Calculator on this page and click "Reserve Selected Dates"!`;
-  }
-
-  return `Hi! I can help you with Staycation Room rates (₱2,000–₱6,000 with free Silog breakfast & LPG), Exclusive Resort Packages (₱3,999–₱16,499), Event Venue Rentals (6, 8, or 12 hrs), add-ons, or booking policies. What would you like to know?`;
-}
-
-function FortsAIChatbot() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      text: 'Hello! 👋 Welcome to The Forts Riverside Private Resort. Ask me anything about our Staycation Rooms, Exclusive Packages, Event Rentals, or add-ons!'
-    }
-  ]);
-
-  const sendMessage = async (customQuestion = null) => {
-    const textToSend = (customQuestion ?? input).trim();
-    if (!textToSend || isLoading) return;
-
-    const updatedMessages = [...messages, { role: 'user', text: textToSend }];
-    setMessages(updatedMessages);
-    if (!customQuestion) setInput('');
-    setIsLoading(true);
-
-    try {
-      if (!GEMINI_API_KEY) {
-        await new Promise((r) => setTimeout(r, 450));
-        setMessages((prev) => [
-          ...prev,
-          { role: 'assistant', text: getLocalFallbackAnswer(textToSend) }
-        ]);
-        setIsLoading(false);
-        return;
-      }
-
-      let targetModel = 'models/gemini-flash-latest';
-      const listRes = await fetch(
-        'https://generativelanguage.googleapis.com/v1beta/models',
-        {
-          headers: { 'x-goog-api-key': GEMINI_API_KEY }
-        }
-      );
-
-      if (listRes.ok) {
-        const listData = await listRes.json();
-        const availableModels = (listData.models || [])
-          .filter(
-            (m) =>
-              m.supportedGenerationMethods?.includes('generateContent') &&
-              m.name.includes('gemini') &&
-              !m.name.includes('image') &&
-              !m.name.includes('tts') &&
-              !m.name.includes('live')
-          )
-          .map((m) => m.name);
-
-        const preferredOrder = [
-          'models/gemini-3.5-flash-lite',
-          'models/gemini-3.1-flash-lite',
-          'models/gemini-flash-lite-latest',
-          'models/gemini-flash-latest',
-          'models/gemini-3.6-flash',
-          'models/gemini-3.8-flash'
-        ];
-
-        const matched =
-          preferredOrder.find((p) => availableModels.includes(p)) ||
-          availableModels.find((m) => m.includes('flash')) ||
-          availableModels[0];
-
-        if (matched) targetModel = matched;
-      }
-
-      const contents = updatedMessages.map((msg) => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.text }]
-      }));
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 25000);
-
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': GEMINI_API_KEY
-          },
-          body: JSON.stringify({
-            systemInstruction: {
-              parts: [{ text: RESORT_SYSTEM_PROMPT }]
-            },
-            contents
-          }),
-          signal: controller.signal
-        }
-      );
-
-      clearTimeout(timeoutId);
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          `API Error ${response.status}: ${data?.error?.message || 'Unknown Error'}`
-        );
-      }
-
-      const aiReply =
-        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-        getLocalFallbackAnswer(textToSend);
-
-      setMessages((prev) => [...prev, { role: 'assistant', text: aiReply }]);
-    } catch (error) {
-      console.error('Chatbot Failed:', error);
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', text: getLocalFallbackAnswer(textToSend) }
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed bottom-5 right-5 z-50">
-      {isOpen ? (
-        <div className="w-[340px] sm:w-[380px] h-[510px] bg-white rounded-3xl border border-[#E6DBC8] shadow-2xl flex flex-col overflow-hidden animate-modal-pop origin-bottom-right">
-          <div className="p-4 bg-[#0B3553] text-white border-b-2 border-[#C8AD7F] flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-full bg-[#F5EFE6] text-[#0B3553] flex items-center justify-center font-bold shadow-xs">
-                <Bot className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold leading-tight">The Forts AI Concierge</h4>
-                <span className="text-[11px] text-[#E6DBC8] flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  Instant Resort Support
-                </span>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all cursor-pointer"
-              aria-label="Close Chat"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#FAF8F5]">
-            {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex animate-step-enter ${
-                  msg.role === 'user' ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                <div
-                  className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm whitespace-pre-line leading-relaxed ${
-                    msg.role === 'user'
-                      ? 'bg-[#0B3553] text-white rounded-br-xs shadow-2xs'
-                      : 'bg-white text-slate-800 border border-[#E6DBC8] rounded-bl-xs shadow-2xs'
-                  }`}
-                >
-                  {msg.text}
-                </div>
-              </div>
-            ))}
-
-            {isLoading && (
-              <div className="flex justify-start animate-fade-in">
-                <div className="bg-white border border-[#E6DBC8] text-slate-500 rounded-2xl rounded-bl-xs px-3.5 py-2 text-xs italic">
-                  Typing a reply...
-                </div>
-              </div>
-            )}
-
-            <div className="pt-2 flex flex-wrap gap-1.5">
-              {QUICK_CHAT_QUESTIONS.map((q) => (
-                <button
-                  key={q}
-                  type="button"
-                  onClick={() => sendMessage(q)}
-                  className="text-[11px] font-semibold bg-[#F5EFE6] hover:bg-[#ebe1d1] active:scale-95 text-[#0B3553] border border-[#E6DBC8] px-2.5 py-1 rounded-full transition-all cursor-pointer"
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              sendMessage();
-            }}
-            className="p-3 bg-white border-t border-[#E6DBC8] flex items-center gap-2"
-          >
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about rooms, rates, or rules..."
-              className="flex-1 text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#0B3553] transition-colors"
-            />
-            <button
-              type="submit"
-              disabled={!input.trim() || isLoading}
-              className="p-2.5 rounded-xl bg-[#0B3553] hover:bg-[#16486B] active:scale-95 disabled:bg-slate-200 text-white transition-all cursor-pointer"
-              aria-label="Send Message"
-            >
-              <Send className="w-4 h-4" />
-            </button>
-          </form>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2.5 bg-[#0B3553] hover:bg-[#16486B] active:scale-95 text-white font-bold text-xs sm:text-sm px-4 py-3.5 rounded-full shadow-xl border-2 border-[#C8AD7F] transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 cursor-pointer"
-        >
-          <MessageCircle className="w-5 h-5 text-[#F5EFE6]" />
-          <span>Ask AI Concierge</span>
-        </button>
-      )}
-    </div>
-  );
-}
+import FortsAIChatbot from './components/FortsAIChatbot.jsx';
+import { FortsBrandLogo, SmartResortImage } from './components/SiteImages.jsx';
+import { BOOKING_SCRIPT_URL } from './config.js';
 
 // ============================================================================
 // MAIN APPLICATION COMPONENT
@@ -678,11 +348,15 @@ export default function App() {
     return { month: currentMonth + 1, year: currentYear };
   }, [currentMonth, currentYear]);
 
-  // Helper: Infers timeSlot ('day' | 'night' | 'overnight' | 'event') from packageId/category
-  const getPackageTimeSlot = (pkgId, category) => {
-    if (category === 'events' || String(pkgId).startsWith('event-')) return 'event';
-    if (String(pkgId).startsWith('day-tour')) return 'day';
-    if (String(pkgId).startsWith('night-tour')) return 'night';
+// Helper: Infers timeSlot ('day' | 'night' | 'overnight' | 'event') from packageId/category/packageName
+  const getPackageTimeSlot = (pkgId, category, pkgName = '') => {
+    const id = String(pkgId || '').trim().toLowerCase();
+    const cat = String(category || '').trim().toLowerCase();
+    const name = String(pkgName || '').trim().toLowerCase();
+
+    if (cat === 'events' || id.startsWith('event-') || name.includes('event')) return 'event';
+    if (id.startsWith('day-tour') || name.includes('day tour')) return 'day';
+    if (id.startsWith('night-tour') || name.includes('night tour') || name.includes('short stay')) return 'night';
     return 'overnight';
   };
 
@@ -693,15 +367,19 @@ export default function App() {
     }
 
     const cleanTargetDate = dateKey.trim();
-    const currentSlot = pkg.timeSlot || getPackageTimeSlot(pkg.id, pkg.category);
+    const nextDayDate = addDaysToKey(cleanTargetDate, 1);
+    const currentSlot = pkg.timeSlot || getPackageTimeSlot(pkg.id, pkg.category, pkg.name);
 
     for (const b of sheetBookings) {
-      if (b.status !== 'Reserved' && b.status !== 'Booked' && b.status !== 'Inquiry') continue;
+      const status = String(b.status || '').trim();
+      if (status !== 'Reserved' && status !== 'Booked' && status !== 'Inquiry') continue;
       if (!b.occupiedDates || !Array.isArray(b.occupiedDates)) continue;
 
-      const existingSlot = b.timeSlot || getPackageTimeSlot(b.packageId, b.category);
+      const existingSlot =
+        b.timeSlot || getPackageTimeSlot(b.packageId, b.category, b.packageName);
 
-      // Rule 1: If existing booking is an overnight stay and we are looking at its Check-Out day (12:00 NN)
+      // Rule 1A: Existing booking is Overnight (checks out at 12:00 NN on b.checkOutDate).
+      // Block Day Tours (8 AM) and Events (8/9 AM) on that check-out date!
       if (
         existingSlot === 'overnight' &&
         b.checkOutDate &&
@@ -709,13 +387,29 @@ export default function App() {
         b.checkOutDate.trim() === cleanTargetDate &&
         b.checkInDate.trim() !== cleanTargetDate
       ) {
-        // BLOCKED: Day Tours (8 AM) and Events (8 AM / 9 AM) overlap with the 12:00 NN check-out
         if (currentSlot === 'day' || currentSlot === 'event') {
-          return { isBlocked: true, statusLabel: b.status };
+          return { isBlocked: true, statusLabel: status };
         }
-        // ALLOWED: Night Tours (7/8 PM) or new Overnight Stays (2 PM) happen AFTER 12:00 NN
         continue;
       }
+
+      // Rule 1B (THE NOV 26–27 FIX): If the user is viewing an OVERNIGHT package on cleanTargetDate (e.g. Nov 26),
+      // they will not check out until 12:00 NN the NEXT day (nextDayDate, e.g. Nov 27).
+      // Therefore, if nextDayDate has a morning Day Tour (8 AM) or Event (8/9 AM), cleanTargetDate MUST be blocked!
+      if (
+        currentSlot === 'overnight' &&
+        (existingSlot === 'day' || existingSlot === 'event') &&
+        b.occupiedDates.some((d) => d.trim() === nextDayDate)
+      ) {
+        return {
+          isBlocked: true,
+          statusLabel: `${status} (8AM ${existingSlot === 'day' ? 'Day Tour' : 'Event'} next morning)`
+        };
+      }
+
+      // Check if this booking actually occupies cleanTargetDate
+      const isDateBlocked = b.occupiedDates.some((d) => d.trim() === cleanTargetDate);
+      if (!isDateBlocked) continue;
 
       // Rule 2: Day Tour (8AM–5PM) and Night Tour (7PM/8PM–5AM) do NOT overlap on the same date!
       if (
@@ -725,18 +419,18 @@ export default function App() {
         continue;
       }
 
-      const existingCategory = String(b.category).trim();
-      const currentCategory = String(pkg.category).trim();
+      const existingCategory = String(b.category || '').trim().toLowerCase();
+      const currentCategory = String(pkg.category || '').trim().toLowerCase();
 
       const isExistingExclusive = existingCategory === 'resort' || existingCategory === 'events';
       const isCurrentExclusive = currentCategory === 'resort' || currentCategory === 'events';
 
       if (isExistingExclusive || isCurrentExclusive) {
-        return { isBlocked: true, statusLabel: b.status };
+        return { isBlocked: true, statusLabel: status };
       }
 
       if (String(b.packageId).trim() === String(pkg.id).trim()) {
-        return { isBlocked: true, statusLabel: b.status };
+        return { isBlocked: true, statusLabel: status };
       }
     }
     return { isBlocked: false, statusLabel: null };
@@ -879,7 +573,25 @@ export default function App() {
       };
     });
 
-    const allAvailable = nightlyDetails.every((n) => n.available);
+    // Prevent an Overnight stay from checking out at 12:00 NN on a date that already has an 8AM Day Tour or Event
+    const checkoutDateForOvernight = isMultiDay
+      ? addDaysToKey(selectedDates[0], nightsCount)
+      : null;
+
+    const hasCheckoutMorningClash =
+      isMultiDay &&
+      checkoutDateForOvernight &&
+      sheetBookings.some((b) => {
+        if (b.status !== 'Reserved' && b.status !== 'Booked' && b.status !== 'Inquiry') return false;
+        const bSlot = b.timeSlot || getPackageTimeSlot(b.packageId, b.category);
+        if (bSlot !== 'day' && bSlot !== 'event') return false;
+        return (
+          Array.isArray(b.occupiedDates) &&
+          b.occupiedDates.some((d) => d.trim() === checkoutDateForOvernight)
+        );
+      });
+
+    const allAvailable = nightlyDetails.every((n) => n.available) && !hasCheckoutMorningClash;
     const hasWeekendStaycationWarning =
       selectedPackage.category === 'staycation' && nightlyDetails.some((n) => n.isPeakDay);
 
@@ -1066,7 +778,7 @@ export default function App() {
             const isSingleSelection = selectedDates.length === 1 && isStart;
 
             // Allow clicking a date as the 12:00 NN Check-Out day of an overnight stay
-            // as long as all preceding nights (from Check-In to Check-Out minus 1 day) are available
+            // ONLY if all preceding nights are available AND the check-out date has NO morning Day Tour or Event
             const canSelectAsCheckout =
               selectedPackage.isOvernightMultiDay &&
               selectedDates.length === 1 &&
@@ -1077,7 +789,18 @@ export default function App() {
                   const nightKey = addDaysToKey(selectedDates[0], i);
                   if (getDateBookingStatus(nightKey, selectedPackage).isBlocked) return false;
                 }
-                return true;
+                const hasMorningClashOnCheckout = sheetBookings.some((b) => {
+                  const status = String(b.status || '').trim();
+                  if (status !== 'Reserved' && status !== 'Booked' && status !== 'Inquiry') return false;
+                  const bSlot =
+                    b.timeSlot || getPackageTimeSlot(b.packageId, b.category, b.packageName);
+                  if (bSlot !== 'day' && bSlot !== 'event') return false;
+                  return (
+                    Array.isArray(b.occupiedDates) &&
+                    b.occupiedDates.some((d) => d.trim() === dayItem.dateKey.trim())
+                  );
+                });
+                return !hasMorningClashOnCheckout;
               })();
 
             return (
@@ -1137,57 +860,6 @@ export default function App() {
       className="min-h-screen bg-white text-slate-800 selection:bg-[#0B3553] selection:text-white"
       style={{ fontFamily: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}
     >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        html {
-          scroll-behavior: smooth;
-        }
-        .font-brand-serif {
-          font-family: 'Cormorant Garamond', Georgia, serif;
-        }
-        @keyframes fadeSlideUp {
-          from {
-            opacity: 0;
-            transform: translateY(14px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes modalPop {
-          from {
-            opacity: 0;
-            transform: scale(0.95) translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-        @keyframes backdropFade {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes successPop {
-          0% { transform: scale(0.5); opacity: 0; }
-          70% { transform: scale(1.12); opacity: 1; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        .animate-step-enter {
-          animation: fadeSlideUp 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .animate-modal-pop {
-          animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .animate-fade-in {
-          animation: backdropFade 0.22s ease-out forwards;
-        }
-        .animate-success-pop {
-          animation: successPop 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-      `}</style>
-
       {/* ==========================================
           TOP ANNOUNCEMENT BAR
       ========================================== */}
@@ -1344,7 +1016,7 @@ export default function App() {
             <div className="lg:col-span-7">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#F5EFE6]/15 border border-[#E6DBC8]/40 text-[#F5EFE6] text-xs sm:text-sm font-medium mb-6 backdrop-blur-xs">
                 <MapPin className="w-4 h-4 text-[#C8AD7F]" />
-                Bustos, Bulacan • Private Resort Sanctuary
+                Bustos, Bulacan
               </div>
 
               <h1 className="text-4xl sm:text-6xl lg:text-7xl font-brand-serif font-bold tracking-tight leading-[1.08] text-white">
@@ -2364,10 +2036,10 @@ export default function App() {
             <div className="p-6 sm:p-8 bg-[#0B3553] text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <span className="text-xs font-bold uppercase tracking-widest text-[#C8AD7F]">
-                  Room-Only Staycation Rates • 22-Hour Stay
+                   22-Hour Stay • Check-in 2:00 PM • Check-out 12:00 NN
                 </span>
                 <h3 className="text-2xl sm:text-3xl font-brand-serif font-bold mt-1">
-                  Check-in 2:00 PM • Check-out 12:00 NN
+                  Room-Only Staycation Rates
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-200 mt-1">
                   Silog breakfast, swimming pool access, kitchen &amp; LPG use, Wi-Fi, parking &amp;
@@ -2493,7 +2165,7 @@ export default function App() {
                     </div>
                   </div>
                   <p className="text-[11px] text-[#8A6D3B] bg-[#FAF8F5] p-2.5 rounded-lg border border-[#E6DBC8] leading-relaxed">
-                    <strong>Note:</strong> Extra mattresses must be requested in advance. Other add-ons (floaters, ice box, ice packs, charcoal) may be requested
+                    <strong>Note:</strong> Extra mattresses must be requested in advance. Other add-ons may be requested
                     in your booking notes or acquired on the day of your booking!
                   </p>
                 </div>
